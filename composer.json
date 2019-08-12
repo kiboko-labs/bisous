@@ -1,0 +1,14 @@
+{
+    "name": "kiboko/akeneo-initialize-from-magento",
+    "type": "project",
+    "require": {
+        "php": "^7.2",
+        "twig/twig": "^2.10"
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Kiboko\\Bridge\\Akeneo\\Magento\\": "src/"
+        }
+    }
+}

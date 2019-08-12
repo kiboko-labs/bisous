@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+  cli:
+    build:
+      context: .docker/php@7.2
+    volumes:
+      - ./.docker/php@7.2/config/memory.ini:/usr/local/etc/php/conf.d/memory.ini:ro
+      - ./:/app
+  composer:
+    extends:
+      service: cli
+    volumes:
+      - composer:/opt/docker/.composer/:cached
+    entrypoint: [ 'composer' ]
+
+volumes:
+  composer:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=2048m,uid=1000,gid=1000"
