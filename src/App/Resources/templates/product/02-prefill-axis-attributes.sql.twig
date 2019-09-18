@@ -1,0 +1,23 @@
+{% for axis in axises %}
+CREATE TEMPORARY TABLE {{ as_field_table(axis) }} (
+    entity_id INTEGER NOT NULL,
+    code VARCHAR(256) NOT NULL,
+    short_code VARCHAR(256) NOT NULL,
+    PRIMARY KEY (entity_id, code),
+    INDEX (code)
+)
+SELECT
+    {{ as_default_alias() }}.entity_id,
+    {{ as_default_alias() }}_option.short_code AS short_code,
+    {{ as_default_alias() }}_option.code AS code
+FROM eav_attribute AS attribute
+INNER JOIN catalog_product_entity_int AS {{ as_default_alias() }}
+    ON {{ as_default_alias() }}.attribute_id=attribute.attribute_id
+INNER JOIN tmp_options AS {{ as_default_alias() }}_option
+    ON {{ as_default_alias() }}_option.attribute = attribute.attribute_code
+    AND {{ as_default_alias() }}.value={{ as_default_alias() }}_option.option_id
+WHERE attribute.attribute_code = '{{ attribute.codeInSource }}'
+  AND attribute.entity_type_id = 4
+  AND attribute.attribute_id={{ as_default_alias() }}.attribute_id
+  AND {{ as_default_alias() }}.store_id = 0;
+{% endfor %}

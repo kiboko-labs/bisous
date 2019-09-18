@@ -1,0 +1,40 @@
+SELECT
+    {% set codeMapping -%}
+    LOWER(opt_value_default.value)
+    {%- endset -%}
+    {%- for replace in mapping -%}
+        {%- set codeMapping -%}
+        REPLACE({{ codeMapping }}, '{{ replace.from }}', '{{ replace.to }}')
+        {%- endset -%}
+    {%- endfor %}
+    SUBSTRING(CONCAT(codes.code, '_', {{ codeMapping }}), 1, 100) AS code,
+    attribute.attribute_code AS attribute,
+    {% for locale in locales %}
+    COALESCE(opt_value_{{ locale }}.value, opt_value_default.value) AS "label-{{ locale }}",
+    {% endfor -%}
+    opt.sort_order AS sort_order
+
+FROM (
+{%- set renderedAttributes = [] -%}
+
+{%- for code in attributes -%}
+    {% set renderedAttribute %}
+    SELECT '{{ code }}' AS code
+    {%  endset %}
+
+    {%- set renderedAttributes = renderedAttributes|merge([renderedAttribute]) -%}
+{%- endfor -%}
+    {{ renderedAttributes|join(' UNION ') }}
+) AS codes
+INNER JOIN eav_attribute AS attribute
+    ON codes.code = attribute.attribute_code
+INNER JOIN eav_attribute_option AS opt
+    ON opt.attribute_id=attribute.attribute_id
+INNER JOIN eav_attribute_option_value AS opt_value_default
+    ON opt_value_default.option_id=opt.option_id
+    AND opt_value_default.store_id=0
+{% for locale in locales %}
+LEFT JOIN eav_attribute_option_value AS opt_value_{{ locale }}
+    ON opt_value_{{ locale }}.option_id=opt.option_id
+    AND opt_value_{{ locale }}.store_id=0
+{% endfor -%}

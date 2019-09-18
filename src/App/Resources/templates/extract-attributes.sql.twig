@@ -1,0 +1,210 @@
+SELECT
+        COALESCE(codes.type, type_mapping.akeneo_type) AS "type",
+        codes.code AS "code",
+        {% for locale in locales %}
+        attributes.frontend_label AS "label-{{ locale }}",
+        {% endfor -%}
+        attributes.groups,
+--         GROUP_CONCAT(', ', ) AS "group",
+        IF(attributes.is_unique, '1', '0') AS "unique",
+        COALESCE(
+            codes.useable_as_grid_filter,
+            CASE COALESCE(codes.type, type_mapping.akeneo_type)
+                WHEN 'pim_catalog_identifier' THEN '1'
+                WHEN 'pim_catalog_simpleselect' THEN '1'
+                WHEN 'pim_catalog_simpleselect' THEN '1'
+                WHEN 'pim_catalog_textarea' THEN '1'
+                WHEN 'pim_catalog_text' THEN '1'
+                ELSE '0'
+            END
+        ) AS "useable_as_grid_filter",
+        NULL AS "allowed_extensions",
+        NULL AS "metric_family",
+        NULL AS "default_metric_unit",
+        NULL AS "reference_data_name",
+        COALESCE(
+            codes.localizable,
+            CASE COALESCE(codes.type, type_mapping.akeneo_type)
+                WHEN 'pim_catalog_identifier' THEN '0'
+                WHEN 'pim_catalog_simpleselect' THEN '0'
+                WHEN 'pim_catalog_simpleselect' THEN '0'
+                WHEN 'pim_catalog_textarea' THEN '0'
+                WHEN 'pim_catalog_text' THEN '0'
+                WHEN 'pim_catalog_image' THEN '0'
+                ELSE '1' END
+        ) AS "localizable",
+        COALESCE(
+            codes.scopable,
+            CASE COALESCE(codes.type, type_mapping.akeneo_type)
+                WHEN 'pim_catalog_identifier' THEN '0'
+                ELSE '1' END
+        ) AS "scopable",
+        CASE codes.code
+            WHEN 'description' THEN '1'
+            ELSE '' END
+        AS "wysiwyg_enabled"
+
+FROM (
+{%- set renderedAttributes = [] -%}
+
+{%- for code, attribute in attributes -%}
+    {% set renderedAttribute %}
+    SELECT '{{ attribute.code|default(code) }}' AS code,
+        {% if attribute.type is same as('string') -%}
+        'pim_catalog_varchar'
+            {%- elseif attribute.type is same as('identifier') -%}
+            'pim_catalog_identifier'
+            {%- elseif attribute.type is same as('text') or attribute.type is same as('rich-text') -%}
+            'pim_catalog_textarea'
+            {%- elseif attribute.type is same as('simple-select') or attribute.type is same as('status') or attribute.type is same as('visibility') -%}
+            'pim_catalog_simpleselect'
+            {%- elseif attribute.type is same as('multi-select') -%}
+            'pim_catalog_multiselect'
+            {%- elseif attribute.type is same as('image') -%}
+            'pim_catalog_image'
+            {%- elseif attribute.type is same as('metric') -%}
+           'pim_catalog_metric'
+            {%- elseif attribute.type is same as('datetime') -%}
+            'pim_catalog_datetime'
+        {%- else -%} NULL
+        {%- endif %} AS type,
+        {{ attribute.localizable|default(false) ? '1' : '0' }} AS localizable,
+        {{ attribute.scopable|default(false) ? '1' : '0' }} AS scopable,
+        {{ attribute.usableAsGridFilter|default(false) ? '1' : '0' }} AS useable_as_grid_filter,
+        {{ attribute.type is same as('rich-text') ? '1' : '0' }} AS wysiwyg_enabled
+    {%  endset %}
+
+    {%- set renderedAttributes = renderedAttributes|merge([renderedAttribute]) -%}
+{%- endfor -%}
+    {{ renderedAttributes|join(' UNION ') }}
+) AS codes
+LEFT JOIN (
+    SELECT attribute.*, GROUP_CONCAT(', ', attribute_group.attribute_group_name) AS groups
+    FROM eav_attribute AS attribute
+    INNER JOIN eav_entity_attribute AS entity_attribute
+        ON attribute.attribute_id=entity_attribute.attribute_id
+    INNER JOIN eav_entity_type AS entity
+        ON entity.entity_type_id = entity_attribute.entity_type_id
+    INNER JOIN eav_attribute_group AS attribute_group
+        ON attribute_group.attribute_group_id = entity_attribute.attribute_group_id
+    WHERE entity.entity_type_code='catalog_product'
+    GROUP BY attribute.attribute_id
+) AS attributes ON attributes.attribute_code=codes.code
+LEFT JOIN (
+    SELECT
+           'pim_catalog_identifier' AS akeneo_type,
+           NULL AS attribute_model,
+           'catalog/product_attribute_backend_sku' AS backend_model,
+           'static' AS backend_type,
+           NULL AS frontend_model,
+           'text' AS frontend_input,
+           NULL AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_textarea' AS akeneo_type,
+           NULL AS attribute_model,
+           NULL AS backend_model,
+           'text' AS backend_type,
+           NULL AS frontend_model,
+           'textarea' AS frontend_input,
+           NULL AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_textarea' AS akeneo_type,
+           NULL AS attribute_model,
+           NULL AS backend_model,
+           'varchar' AS backend_type,
+           NULL AS frontend_model,
+           'textarea' AS frontend_input,
+           NULL AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_text' AS akeneo_type,
+           NULL AS attribute_model,
+           NULL AS backend_model,
+           'varchar' AS backend_type,
+           NULL AS frontend_model,
+           'text' AS frontend_input,
+           NULL AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_date' AS akeneo_type,
+           NULL AS attribute_model,
+           'catalog/product_attribute_backend_startdate' AS backend_model,
+           'datetime' AS backend_type,
+           'eav/entity_attribute_frontend_datetime' AS frontend_model,
+           'date' AS frontend_input,
+           NULL AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_date' AS akeneo_type,
+           NULL AS attribute_model,
+           'eav/entity_attribute_backend_datetime' AS backend_model,
+           'datetime' AS backend_type,
+           'eav/entity_attribute_frontend_datetime' AS frontend_model,
+           'date' AS frontend_input,
+           NULL AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_simpleselect' AS akeneo_type,
+           NULL AS attribute_model,
+           NULL AS backend_model,
+           'int' AS backend_type,
+           NULL AS frontend_model,
+           'select' AS frontend_input,
+           'catalog/product_status' AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_simpleselect' AS akeneo_type,
+           NULL AS attribute_model,
+           NULL AS backend_model,
+           'int' AS backend_type,
+           NULL AS frontend_model,
+           'select' AS frontend_input,
+           'catalog/product_visibility' AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_simpleselect' AS akeneo_type,
+           NULL AS attribute_model,
+           NULL AS backend_model,
+           'int' AS backend_type,
+           NULL AS frontend_model,
+           'select' AS frontend_input,
+           'eav/entity_attribute_source_table' AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_image' AS akeneo_type,
+           NULL AS attribute_model,
+           NULL AS backend_model,
+           'varchar' AS backend_type,
+           'catalog/product_attribute_frontend_image' AS frontend_model,
+           'media_image' AS frontend_input,
+           NULL AS source_model,
+           NULL AS metric_family,
+           NULL AS default_metric_unit
+    UNION SELECT
+           'pim_catalog_metric' AS akeneo_type,
+           NULL AS attribute_model,
+           NULL AS backend_model,
+           'decimal' AS backend_type,
+           NULL AS frontend_model,
+           'weight' AS frontend_input,
+           NULL AS source_model,
+           'Weight' AS metric_family,
+           'KILOGRAM' AS default_metric_unit
+) AS type_mapping
+    ON (type_mapping.attribute_model=attributes.attribute_model OR (type_mapping.attribute_model IS NULL AND attributes.attribute_model IS NULL))
+    AND (type_mapping.backend_model=attributes.backend_model OR (type_mapping.backend_model IS NULL AND attributes.backend_model IS NULL))
+    AND (type_mapping.backend_type=attributes.backend_type OR (type_mapping.backend_type IS NULL AND attributes.backend_type IS NULL))
+    AND (type_mapping.frontend_model=attributes.frontend_model OR (type_mapping.frontend_model IS NULL AND attributes.frontend_model IS NULL))
+    AND (type_mapping.frontend_input=attributes.frontend_input OR (type_mapping.frontend_input IS NULL AND attributes.frontend_input IS NULL))
+    AND (type_mapping.source_model=attributes.source_model OR (type_mapping.source_model IS NULL AND attributes.source_model IS NULL))
