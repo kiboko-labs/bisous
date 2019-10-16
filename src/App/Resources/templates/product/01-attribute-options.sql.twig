@@ -7,7 +7,7 @@ CREATE TEMPORARY TABLE tmp_options (
     PRIMARY KEY (option_id),
     INDEX (code, attribute),
     INDEX (attribute)
-)
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
     opt_value_default.option_id,
     {% set codeMapping -%}
@@ -26,7 +26,7 @@ SELECT
 FROM (
 {%- set renderedAttributes = [] -%}
 
-{%- for code in attributes -%}
+{%- for code in attributes|keys -%}
     {% set renderedAttribute %}
     SELECT '{{ code }}' AS code
     {%  endset %}

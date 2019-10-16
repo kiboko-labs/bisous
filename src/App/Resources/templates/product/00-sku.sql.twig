@@ -4,7 +4,7 @@ CREATE TEMPORARY TABLE tmp_sku (
     type_id VARCHAR(32) NOT NULL,
     PRIMARY KEY (sku),
     UNIQUE INDEX (entity_id)
-)
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
     product.sku,
     product.entity_id,

@@ -161,3 +161,26 @@ $renderer = new Renderer(
 
 $renderer(fopen('products.sql', 'w'), $twig);
 ```
+
+Supported attribute types 
+---
+
+| Magento Type | Akeneo Type | Not Localizable, not Scopable | Localizable, not Scopable | Not Localizable, Scopable | Localizable, Scopable |
+| --- | --- | --- | --- | --- | --- |
+| Gallery | Asset Collection | ❌ | ❌ | ❌ | ❌ |
+| Datetime | Date | ✅ | ❌ | ❌ | ✅ |
+| File | File | ❌ | ❌ | ❌ | ❌ |
+| SKU | Identifier | ✅ | ❌ | ❌ | ❌ |
+| Image | Image | ✅ | ❌ | ❌ | ✅ |
+| Decimal | Metric | ❌ | ❌ | ❌ | ❌ |
+| Multiselect | Multi select | ❌ | ❌ | ❌ | ❌ |
+| Select | Simple select | ✅ | ❌ | ✅ | ✅ |
+| Number | Number | ❌ | ❌ | ❌ | ❌ |
+| Price | Price | ❌ | ❌ | ❌ | ❌ |
+| Status | Simple select | ✅ | ❌ | ❌ | ❌ |
+| - | Reference data multi select | ❌ | ❌ | ❌ | ❌ |
+| - | Reference data simple select | ❌ | ❌ | ❌ | ❌ |
+| Text | Text area | ✅ | ❌ | ❌ | ✅ |
+| Varchar | Text | ✅ | ❌ | ❌ | ✅ |
+| Visibility | Simple select | ✅ | ❌ | ❌ | ❌ |
+| YesNo | Yes No | ❌ | ❌ | ❌ | ❌ |

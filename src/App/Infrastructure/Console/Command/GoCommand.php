@@ -3,7 +3,16 @@
 namespace App\Infrastructure\Console\Command;
 
 use App\Domain\Fixture;
+use App\Domain\Magento\Attribute;
+use App\Domain\Magento\Locale;
+use App\Domain\Magento\Scope;
+use App\Domain\Magento\TwigExtension;
+use App\Infrastructure\AttributeRendererFactory;
 use App\Infrastructure\Configuration\YamlFileLoader;
+use App\Infrastructure\Normalizer\Magento\AttributeDenormalizerFactory;
+use App\Infrastructure\Normalizer\Magento\LocaleDenormalizerFactory;
+use App\Infrastructure\Normalizer\Magento\ScopeDenormalizerFactory;
+use App\Infrastructure\VariantAxisesFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\Config\Exception\LoaderLoadException;
@@ -18,6 +27,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Twig\Environment;
+use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
 
 class GoCommand extends Command
@@ -95,16 +105,26 @@ class GoCommand extends Command
             return -1;
         }
 
-        $pdo = new \PDO(
-            $input->getOption('dsn') ?? $_ENV['APP_DSN'] ?? 'mysql:host=localhost;dbname=magento',
-            $input->getOption('username') ?? $_ENV['APP_USERNAME'] ?? 'root',
-            $input->getOption('password') ?? $_ENV['APP_PASSWORD'] ?? null,
-            [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-            ]
-        );
+        try {
+            $pdo = new \PDO(
+                $input->getOption('dsn') ?? $_ENV['APP_DSN'] ?? 'mysql:host=localhost;dbname=magento',
+                $input->getOption('username') ?? $_ENV['APP_USERNAME'] ?? 'root',
+                $input->getOption('password') ?? $_ENV['APP_PASSWORD'] ?? null,
+                [
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                    \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
+                    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                ]
+            );
+        } catch (\PDOException $e) {
+            $style->error($e->getMessage());
+            $style->error(strtr('Connection parameters were: %dsn% with user %user%, using password: %password%.', [
+                '%dsn%' => $input->getOption('dsn') ?? $_ENV['APP_DSN'] ?? 'mysql:host=localhost;dbname=magento',
+                '%user%' => $input->getOption('username') ?? $_ENV['APP_USERNAME'] ?? 'root',
+                '%password%' => ($input->getOption('password') ?? $_ENV['APP_PASSWORD'] ?? null) !== null ? 'Yes' : 'No',
+            ]));
+            return -1;
+        }
 
         $twig = new Environment(
             new FilesystemLoader([
@@ -112,8 +132,12 @@ class GoCommand extends Command
             ]),
             [
                 'autoescape' => false,
+                'debug' => true,
             ]
         );
+
+        $twig->addExtension(new DebugExtension());
+        $twig->addExtension(new TwigExtension());
 
         (new Fixture\Command\ExtractLocales())(
             new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/locales.yml', 'w'),
@@ -164,10 +188,24 @@ class GoCommand extends Command
 
         $style->writeln('family variants <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
 
-        (new Fixture\Command\ExtractSimpleProducts($pdo, $twig))(
+        $attributes = (new AttributeDenormalizerFactory())()
+            ->denormalize($config['attributes'], Attribute::class.'[]');
+        $scopes = (new ScopeDenormalizerFactory())()
+            ->denormalize($config['scopes'], Scope::class.'[]');
+        $locales = (new LocaleDenormalizerFactory())()
+            ->denormalize($config['locales'], Locale::class.'[]');
+
+        /** @var Attribute[] $axises */
+        $axises = (new VariantAxisesFactory($attributes))($config);
+
+        $attributeRenderersFactory = new AttributeRendererFactory();
+        $attributeRenderers = $attributeRenderersFactory($attributes, $axises, $config['attributes']);
+
+        (new Fixture\Command\ExtractSimpleProducts($pdo, $twig, $this->logger))(
             new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/products.csv', 'w'),
-            $config['families'],
-            array_keys($config['locales'])
+            $attributeRenderers,
+            array_keys($config['locales']),
+            $config['families']
         );
 
         $style->writeln('products <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);

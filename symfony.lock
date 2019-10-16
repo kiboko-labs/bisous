@@ -39,6 +39,9 @@
     "symfony/filesystem": {
         "version": "v4.3.3"
     },
+    "symfony/finder": {
+        "version": "v4.3.4"
+    },
     "symfony/flex": {
         "version": "1.0",
         "recipe": {

@@ -1,11 +1,11 @@
-{% for axis in axises %}
-CREATE TEMPORARY TABLE {{ as_field_table(axis) }} (
+{% for field in axises %}
+CREATE TEMPORARY TABLE {{ as_field_table(field) }} (
     entity_id INTEGER NOT NULL,
     code VARCHAR(256) NOT NULL,
     short_code VARCHAR(256) NOT NULL,
     PRIMARY KEY (entity_id, code),
     INDEX (code)
-)
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
     {{ as_default_alias() }}.entity_id,
     {{ as_default_alias() }}_option.short_code AS short_code,

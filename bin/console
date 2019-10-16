@@ -58,7 +58,7 @@ $factory = new class($output) {
     }
 };
 
-$application = new Application('Akeneo Fixtures From Magento');
+$application = new Application('Bisous', '1.0.0');
 $application->setCommandLoader(new FactoryCommandLoader([
     'init' => $factory(\App\Infrastructure\Console\Command\InitializeCommand::class),
     'go' => $factory(\App\Infrastructure\Console\Command\GoCommand::class),

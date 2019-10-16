@@ -1,16 +1,15 @@
-
-CREATE TEMPORARY TABLE {{ as_attribute_table(attribute) }} (
+CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
-    {%- for field in fields -%}
+    {%- for field in renderer.fields -%}
     `{{ as_field_column(field) }}` TEXT NULL,
     {% endfor -%}
     PRIMARY KEY (sku),
     UNIQUE INDEX (entity_id)
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
-    {% for field in fields -%}
+    {% for field in renderer.fields -%}
     COALESCE({{ as_field_alias(field) }}.value, {{ as_default_alias() }}.value) AS `{{ as_field_column(field) }}`,
     {% endfor -%}
     product.*
@@ -21,7 +20,7 @@ LEFT JOIN catalog_product_entity_text AS {{ as_default_alias() }}
     ON {{ as_default_alias() }}.entity_id=product.entity_id
     AND {{ as_default_alias() }}.attribute_id=attribute.attribute_id
     AND {{ as_default_alias() }}.store_id=0
-{% for field in fields -%}
+{% for field in renderer.fields -%}
 LEFT JOIN catalog_product_entity_text AS {{ as_field_alias(field) }}
     ON {{ as_field_alias(field) }}.entity_id=product.entity_id
     AND {{ as_field_alias(field) }}.attribute_id=attribute.attribute_id

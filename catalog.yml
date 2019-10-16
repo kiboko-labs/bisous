@@ -1,0 +1,398 @@
+catalog:
+  attributes:
+    - code: sku
+      type: identifier
+      strategy: ad-hoc
+      group: general
+    - code: name
+      type: string
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: variation_name
+      type: string
+      strategy: ex-nihilo
+      group: general
+      scoped: true
+      localised: true
+    - code: description
+      type: rich-text
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: variation_description
+      type: rich-text
+      strategy: aliased
+      source: description
+      group: general
+      scoped: true
+      localised: true
+    - code: short_description
+      type: rich-text
+      strategy: ex-nihilo
+      group: general
+      scoped: true
+      localised: true
+    - code: meta_title
+      type: string
+      strategy: ad-hoc
+      source: meta_title
+      group: general
+      scoped: true
+      localised: true
+    - code: meta_description
+      type: text
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: status
+      type: status
+      strategy: ad-hoc
+      group: general
+    - code: visibility
+      type: visibility
+      strategy: ad-hoc
+      group: general
+    - code: capacity
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: grade
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: color
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: news_from_date
+      type: datetime
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: news_to_date
+      type: datetime
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: manufacturer
+      type: datetime
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: pastille
+      type: simple-select
+      strategy: ex-nihilo
+      group: general
+      scoped: true
+      localised: true
+    - code: recom_fr_3g
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_4g
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_accessoires
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_bluetooth
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_cartesd
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_das
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_deblocage
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_dimensions
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_ecran
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_garantie
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_iris
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_jack
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_lightning
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_nfc
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_photo
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_poids
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_resolution_ecran
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_sim
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: recom_fr_touchid
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: false
+    - code: model
+      type: simple-select
+      strategy: ad-hoc
+      group: general
+      scoped: true
+      localised: true
+    - code: weight
+      type: metric
+      strategy: ad-hoc
+      group: general
+      metric:
+        family: Weight
+        unit: KILOGRAM
+    - code: image
+      type: image
+      strategy: ad-hoc
+      group: general
+    - code: variation_image
+      type: image
+      strategy: ex-nihilo
+      group: general
+      scoped: true
+      localised: true
+
+  groups:
+    - code: general
+      label:
+        de_CH: General
+        de_DE: General
+        en_GB: General
+        es_ES: General
+        fr_CH: Général
+        fr_FR: Général
+        it_CH: General
+        it_IT: General
+
+  families:
+    - code: mobile
+      attributes: [ name, description, short_description, meta_title, meta_description, status, visibility, image, recom_fr_3g, recom_fr_4g, recom_fr_accessoires, recom_fr_bluetooth, recom_fr_cartesd, recom_fr_das, recom_fr_deblocage, recom_fr_dimensions, recom_fr_ecran, recom_fr_garantie, recom_fr_iris, recom_fr_jack, recom_fr_lightning, recom_fr_nfc, recom_fr_photo , recom_fr_poids, recom_fr_resolution_ecran, recom_fr_sim, recom_fr_touchid, model, manufacturer, color, capacity, grade, variation_name, variation_image, variation_description, news_to_date, news_from_date ]
+      label: name
+      image: image
+      requirements:
+        - scope: recommerce_eu
+          attributes: [ name, description ]
+        - scope: recommerce_ch
+          attributes: [ name, description ]
+        - scope: bmo_digitech
+          attributes: [ name, description ]
+        - scope: bmo_bouygues
+          attributes: [ name, description ]
+        - scope: bmo_mbudget
+          attributes: [ name, description ]
+        - scope: bmo_ricardo
+          attributes: [ name, description ]
+        - scope: amazon
+          attributes: [ name, description ]
+        - scope: advise
+          attributes: [ name, description ]
+      variations:
+        - code: mobile_color_capacity_grade
+          level-1:
+            axis: [ color, capacity ]
+            attributes: [ variation_name, variation_image, variation_description ]
+          level-2:
+            axis: [ grade ]
+            attributes: [ sku, status, visibility, news_from_date, news_to_date ]
+        - code: mobile_groupon
+          level-1:
+            axis: [ color, capacity ]
+            attributes: [ variation_name, variation_image, variation_description ]
+
+  locales:
+    - code: de_CH
+      currency: CHF
+      store: 15
+    - code: de_DE
+      currency: EUR
+      store: 21
+    - code: en_GB
+      currency: GBP
+      store: 16
+    - code: es_ES
+      currency: EUR
+      store: 16
+    - code: fr_CH
+      currency: CHF
+      store: 16
+    - code: fr_FR
+      currency: EUR
+      store: 18
+    - code: it_CH
+      currency: CHF
+      store: 17
+    - code: it_IT
+      currency: EUR
+      store: 17
+
+  scopes:
+    - code: recommerce_eu
+      store: 18
+      locales:
+        - code: fr_FR
+          store: 18
+        - code: de_DE
+          store: 21
+#        - code: es_ES
+#          store: 1
+    - code: recommerce_ch
+      store: 16
+      locales:
+        - code: fr_CH
+          store: 16
+        - code: de_CH
+          store: 15
+        - code: it_CH
+          store: 17
+    - code: bmo_digitech
+      store: 16
+      locales:
+        - code: fr_CH
+          store: 16
+        - code: de_CH
+          store: 15
+        - code: it_CH
+          store: 17
+        - code: en_GB
+          store: 16
+    - code: bmo_bouygues
+      store: 3
+      locales:
+        - code: fr_FR
+          store: 3
+    - code: bmo_mbudget
+      store: 3
+      locales:
+        - code: fr_CH
+          store: 3
+        - code: de_CH
+          store: 4
+        - code: it_CH
+          store: 5
+    - code: bmo_ricardo
+      store: 7
+      locales:
+        - code: fr_CH
+          store: 7
+        - code: de_CH
+          store: 6
+    - code: amazon
+      store: 8
+      locales:
+        - code: fr_FR
+          store: 8
+    - code: advise
+      store: 22
+      locales:
+        - code: fr_CH
+          store: 22
+
+  codes-mapping:
+    - from: '"'
+      to: 'inches'
+    - from: 'â'
+      to: 'a'
+    - from: 'é'
+      to: 'e'
+    - from: 'è'
+      to: 'e'
+    - from: '/'
+      to: '_'
+    - from: '.'
+      to: '_'
+    - from: ' '
+      to: '_'
+    - from: ','
+      to: '_'
+    - from: '('
+      to: ''
+    - from: ')'
+      to: ''
+    - from: '+'
+      to: '_plus'
+    - from: '_x_'
+      to: 'x'
