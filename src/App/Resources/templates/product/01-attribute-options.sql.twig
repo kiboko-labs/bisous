@@ -26,9 +26,9 @@ SELECT
 FROM (
 {%- set renderedAttributes = [] -%}
 
-{%- for code in attributes|keys -%}
+{%- for attribute in attributes -%}
     {% set renderedAttribute %}
-    SELECT '{{ code }}' AS code
+    SELECT '{{ attribute.attribute.code }}' AS code
     {%  endset %}
 
     {%- set renderedAttributes = renderedAttributes|merge([renderedAttribute]) -%}

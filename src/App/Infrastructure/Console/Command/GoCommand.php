@@ -4,9 +4,10 @@ namespace App\Infrastructure\Console\Command;
 
 use App\Domain\Fixture;
 use App\Domain\Magento\Attribute;
+use App\Domain\Magento\AttributeRenderer;
 use App\Domain\Magento\Locale;
 use App\Domain\Magento\Scope;
-use App\Domain\Magento\TwigExtension;
+use App\Domain\Magento\SqlExportTwigExtension;
 use App\Infrastructure\AttributeRendererFactory;
 use App\Infrastructure\Configuration\YamlFileLoader;
 use App\Infrastructure\Normalizer\Magento\AttributeDenormalizerFactory;
@@ -137,7 +138,7 @@ class GoCommand extends Command
         );
 
         $twig->addExtension(new DebugExtension());
-        $twig->addExtension(new TwigExtension());
+        $twig->addExtension(new SqlExportTwigExtension());
 
         (new Fixture\Command\ExtractLocales())(
             new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/locales.yml', 'w'),
@@ -193,19 +194,40 @@ class GoCommand extends Command
         $scopes = (new ScopeDenormalizerFactory())()
             ->denormalize($config['scopes'], Scope::class.'[]');
         $locales = (new LocaleDenormalizerFactory())()
-            ->denormalize($config['locales'], Locale::class.'[]');
+            ->denormalize($config['scopes'], Locale::class.'[]');
 
-        /** @var Attribute[] $axises */
-        $axises = (new VariantAxisesFactory($attributes))($config);
+        $axisAttributes = array_filter($attributes, function (Attribute $renderer) use ($config) {
+            $code = $renderer->code();
+            foreach ($config['families'] as $family) {
+                foreach ($family['variations'] as $variation) {
+                    if (in_array($code, $variation['level_1']['axis']) ||
+                        (isset($variation['level_2']['axis']) && in_array($code, $variation['level_2']['axis']))
+                    ) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        });
 
         $attributeRenderersFactory = new AttributeRendererFactory();
-        $attributeRenderers = $attributeRenderersFactory($attributes, $axises, $config['attributes']);
+        /** @var AttributeRenderer[] $attributeRenderers */
+        $attributeRenderers = $attributeRenderersFactory(
+            $attributes,
+            $axisAttributes,
+            $scopes,
+            $locales,
+            $config['attributes']
+        );
+
+        /** @var Attribute[] $axises */
+        $axises = (new VariantAxisesFactory(...$attributeRenderers))($config);
 
         (new Fixture\Command\ExtractSimpleProducts($pdo, $twig, $this->logger))(
             new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/products.csv', 'w'),
             $attributeRenderers,
-            array_keys($config['locales']),
-            $config['families']
+            $axises
         );
 
         $style->writeln('products <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);

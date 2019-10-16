@@ -1,32 +1,30 @@
-
-
-{#CREATE TEMPORARY TABLE tmp_hierarchy (#}
-{#    parent VARCHAR(128) NOT NULL,#}
-{#    child VARCHAR(128) NOT NULL,#}
-{#    variant VARCHAR(128) NOT NULL,#}
-{#    color VARCHAR(128) NULL,#}
-{#    capacity VARCHAR(128) NULL,#}
-{#    PRIMARY KEY (parent, child, variant),#}
-{#    INDEX (parent),#}
-{#    INDEX (child),#}
-{#    INDEX (variant)#}
-{#)#}
-{#SELECT#}
-{#    product.sku AS parent,#}
-{#    CONCAT(product.sku{%- for axis in axises -%}, ':', {{ as_field_alias(axis) }}.short_code{%- endfor -%}) AS child,#}
-{#{%- for axis in axises -%}#}
-{#    {{ as_field_alias(axis) }}.code AS `{{ attribute.codeInDestination }}`,#}
-{#{% endfor -%}#}
-{#    child.sku AS variant#}
-{#FROM catalog_product_entity AS product#}
-{#INNER JOIN catalog_product_super_link AS link#}
-{#    ON link.parent_id=product.entity_id#}
-{#INNER JOIN catalog_product_entity AS child#}
-{#    ON child.entity_id=link.product_id#}
-{#{% for axis in axises -%}#}
-{#INNER JOIN {{ as_attribute_table(axis) }} AS {{ as_field_alias(axis) }}#}
-{#    ON {{ as_field_alias(axis) }}.entity_id = child.entity_id#}
-{#{% endfor -%}#}
-{#WHERE product.sku IS NOT NULL#}
-{#  AND child.sku IS NOT NULL#}
-{#  AND product.type_id IN ('configurable');#}
+CREATE TEMPORARY TABLE tmp_hierarchy (
+    parent VARCHAR(128) NOT NULL,
+    child VARCHAR(128) NOT NULL,
+    variant VARCHAR(128) NOT NULL,
+    color VARCHAR(128) NULL,
+    capacity VARCHAR(128) NULL,
+    PRIMARY KEY (parent, child, variant),
+    INDEX (parent),
+    INDEX (child),
+    INDEX (variant)
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SELECT
+    product.sku AS parent,
+    CONCAT(product.sku{%- for axis in axises -%}, ':', {{ as_field_alias(axis) }}.short_code{%- endfor -%}) AS child,
+{%- for axis in axises -%}
+    {{ as_field_alias(axis) }}.code AS `{{ attribute.alias }}`,
+{% endfor -%}
+    child.sku AS variant
+FROM catalog_product_entity AS product
+INNER JOIN catalog_product_super_link AS link
+    ON link.parent_id=product.entity_id
+INNER JOIN catalog_product_entity AS child
+    ON child.entity_id=link.product_id
+{% for axis in axises -%}
+INNER JOIN {{ as_attribute_table(axis) }} AS {{ as_field_alias(axis) }}
+    ON {{ as_field_alias(axis) }}.entity_id = child.entity_id
+{% endfor -%}
+WHERE product.sku IS NOT NULL
+  AND child.sku IS NOT NULL
+  AND product.type_id IN ('configurable');

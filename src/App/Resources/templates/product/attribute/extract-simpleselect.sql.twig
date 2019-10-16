@@ -2,13 +2,17 @@ CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
-    code VARCHAR(255) NULL,
+    {%- for field in renderer.fields -%}
+    `{{ as_field_column(field) }}` VARCHAR(255) NULL,
+    {% endfor -%}
     PRIMARY KEY (sku),
     UNIQUE INDEX (entity_id)
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
-    product.*,
-    {{ as_default_alias() }}.value
+    {% for field in renderer.fields -%}
+    {{ as_default_alias() }}.value AS `{{ as_field_alias(field) }}`,
+    {% endfor -%}
+    product.*
 FROM tmp_sku AS product
 INNER JOIN eav_attribute AS attribute
     ON attribute.attribute_code='{{ renderer.attribute.code }}' AND attribute.entity_type_id=4

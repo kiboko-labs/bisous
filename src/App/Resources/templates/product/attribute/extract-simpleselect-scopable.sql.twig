@@ -60,14 +60,14 @@ CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
     {% for field in renderer.fields %}
-    `{{ field }}` VARCHAR(255) NOT NULL,
+    `{{ as_field_alias(field) }}` VARCHAR(255) NOT NULL,
     {% endfor %}
     PRIMARY KEY (sku),
     UNIQUE INDEX (entity_id)
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
     {% for field in renderer.fields -%}
-    {{ as_field_alias(field) }}.value AS `{{ as_field_column(field) }}`,
+    {{ as_field_table(field) }}.value AS `{{ as_field_alias(field) }}`,
     {% endfor -%}
     product.*
 FROM tmp_sku AS product

@@ -39,15 +39,21 @@ class Scoped implements CodeGeneratorInterface
 
     public function default(): string
     {
-        return 'attr_default';
+        return strtr(
+            'attr_default_{{ attribute }}',
+            [
+                '{{ attribute }}' => $this->attribute->code,
+            ]
+        );
     }
 
     public function alias(): string
     {
         return strtr(
-            'attr_{{ scope }}',
+            'attr_{{ attribute }}_{{ scope }}',
             [
                 '{{ scope }}' => $this->scope->code(),
+                '{{ attribute }}' => $this->attribute->code,
             ]
         );
     }

@@ -75,6 +75,7 @@ class Configuration implements ConfigurationInterface
                             ->arrayNode('variations')
                                 ->arrayPrototype()
                                     ->children()
+                                        ->scalarNode('skuPattern')->end()
                                         ->scalarNode('code')->isRequired()->end()
                                         ->arrayNode('level_1')
                                             ->children()

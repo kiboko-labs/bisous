@@ -1,0 +1,16 @@
+SELECT
+{% for attribute in attributes %}
+    {% for field in attribute.fields %}
+    {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}`,
+    {% endfor %}
+{% endfor %}
+    product.sku AS sku,
+    COALESCE(hierarchy.child, hierarchy.parent) AS product_model
+FROM tmp_sku AS product
+{% for attribute in attributes %}
+INNER JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias(attribute.attribute) }}
+    ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
+{% endfor %}
+LEFT JOIN tmp_hierarchy as hierarchy
+    ON hierarchy.variant=product.sku
+WHERE product.type_id IN ('simple', 'virtual')

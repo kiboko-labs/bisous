@@ -2,7 +2,7 @@ CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
-    {%- for field in fields -%}
+    {%- for field in renderer.fields -%}
     `{{ as_field_column(field) }}` VARCHAR(255) NULL,
     {% endfor -%}
     PRIMARY KEY (sku),
@@ -22,7 +22,7 @@ LEFT JOIN catalog_product_entity_varchar AS {{ as_default_alias() }}
     AND {{ as_default_alias() }}.store_id=0
     AND {{ as_default_alias() }}.value!='no_selection'
 {% for field in renderer.fields -%}
-LEFT JOIN catalog_product_entity_datetime AS {{ as_field_alias(field) }}
+LEFT JOIN catalog_product_entity_varchar AS {{ as_field_alias(field) }}
     ON {{ as_field_alias(field) }}.entity_id=product.entity_id
     AND {{ as_field_alias(field) }}.attribute_id=attribute.attribute_id
     AND {{ as_field_alias(field) }}.store_id={{ field.store.id }}

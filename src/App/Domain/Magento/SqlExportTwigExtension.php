@@ -5,9 +5,9 @@ namespace App\Domain\Magento;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
-class TwigExtension extends AbstractExtension
+class SqlExportTwigExtension extends AbstractExtension
 {
-    public function getfunctions()
+    public function getFunctions()
     {
         return [
             new TwigFunction('as_field_alias', function(Field $field) {
@@ -24,6 +24,22 @@ class TwigExtension extends AbstractExtension
                 return 'attr_default';
             }),
 
+            new TwigFunction('as_attribute_axis_table', function(Attribute $attribute) {
+                return strtr(
+                    'tmp_axis_{{ attribute }}',
+                    [
+                        '{{ attribute }}' => $attribute->code(),
+                    ]
+                );
+            }),
+            new TwigFunction('as_attribute_alias', function(Attribute $attribute) {
+                return strtr(
+                    'attr_default_{{ attribute }}',
+                    [
+                        '{{ attribute }}' => $attribute->code(),
+                    ]
+                );
+            }),
             new TwigFunction('as_attribute_table', function(Attribute $attribute) {
                 return strtr(
                     'tmp_{{ attribute }}',
@@ -65,6 +81,39 @@ class TwigExtension extends AbstractExtension
                         '{{ attribute }}' => $attribute->code(),
                         '{{ scope }}' => $scope->code(),
                         '{{ locale }}' => $locale->code(),
+                    ]
+                );
+            }),
+
+            new TwigFunction('as_product_hierarchy_sku_field', function(string $skuField, FamilyVariant $family) {
+                $replacements = [
+                    '%parent%' => $skuField,
+                ];
+
+                foreach ($family->axis(1)->attributes as $attribute) {
+                    /** @var Field $field */
+                    foreach ($attribute->fields() as $field) {
+                        $replacements['%' . $attribute->attribute()->code() . '%'] = strtr(
+                            '{{ alias }}.{{ field }}',
+                            [
+                                '{{ alias }}' => $field->codeGenerator->alias(),
+                                '{{ field }}' => $field->codeGenerator->column(),
+                            ]
+                        );
+                    }
+                }
+
+                $pattern = 'CONCAT("' . preg_replace_callback('/{{\s*([a-z_]+)\s*}}/', function($matches) {
+                    return '", %' . $matches[1] . '%, "';
+                }, $family->skuTemplate) . '")';
+
+                return strtr($pattern, $replacements);
+            }),
+            new TwigFunction('as_product_hierarchy_axis_alias', function(Attribute $attribute) {
+                return strtr(
+                    'attr_{{ attribute }}',
+                    [
+                        '{{ attribute }}' => $attribute->code(),
                     ]
                 );
             }),

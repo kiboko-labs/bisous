@@ -4,6 +4,7 @@ namespace App\Domain\Fixture\Command;
 
 use App\Domain\Fixture\SqlToCsv;
 use App\Domain\Magento\AttributeRenderer;
+use App\Domain\Magento\FamilyVariant;
 use App\Infrastructure\Command\CommandBus;
 use App\Infrastructure\Command\TwigCommand;
 use Psr\Log\LoggerAwareInterface;
@@ -34,8 +35,9 @@ class ExtractSimpleProducts implements LoggerAwareInterface
 
     /**
      * @param AttributeRenderer[] $attributes
+     * @param FamilyVariant[] $familyVariants
      */
-    public function __invoke(\SplFileObject $output, array $attributes, array $locales, array $families): void
+    public function __invoke(\SplFileObject $output, array $attributes, array $familyVariants): void
     {
         $bus = new CommandBus();
         try {
@@ -54,17 +56,15 @@ class ExtractSimpleProducts implements LoggerAwareInterface
                         'attributes' => $attributes,
                     ],
                     $this->logger
-//                ),
-//                new TwigCommand(
-//                    $this->twig,
-//                    'product/02-prefill-axis-attributes.sql.twig',
-//                    [
-//                        'mapping' => [],
-//                        'axises' => array_merge([], ...array_map(function(AttributeRenderer $renderer) {
-//                            return $renderer->fields();
-//                        }, $axises)),
-//                    ],
-//                    $this->logger
+                ),
+                new TwigCommand(
+                    $this->twig,
+                    'product/02-prefill-axis-attributes.sql.twig',
+                    [
+                        'mapping' => [],
+                        'variants' => $familyVariants,
+                    ],
+                    $this->logger
                 )
             );
 
@@ -91,15 +91,26 @@ class ExtractSimpleProducts implements LoggerAwareInterface
                 );
             }
 
+            $bus->add(
+                new TwigCommand(
+                    $this->twig,
+                    'product/03-generate-intermediate-product-models.sql.twig',
+                    [
+                        'variants' => $familyVariants,
+                    ],
+                    $this->logger
+                )
+            );
+
             $bus($this->pdo);
 
             $view = $this->twig->load('extract-products.sql.twig');
 
-            (new SqlToCsv($this->pdo))
+            (new SqlToCsv($this->pdo, $this->logger))
             (
                 $view->render([
                     'attributes' => $attributes,
-                    'locales' => $locales,
+                    'variants' => $familyVariants,
                 ]),
                 $output
             );
