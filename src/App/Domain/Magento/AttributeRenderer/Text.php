@@ -22,7 +22,7 @@ class Text implements AttributeRenderer
         $this->attribute = $attribute;
 
         if ($fieldResolver instanceof VariantAxis) {
-            throw new \TypeError('Could not accept a VariantAxis renderer in a Text attrinute.');
+            throw new \TypeError('Could not accept a VariantAxis renderer in a Text attribute.');
         }
 
         $this->fieldResolver = $fieldResolver;

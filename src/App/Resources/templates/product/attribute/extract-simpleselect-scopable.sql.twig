@@ -1,4 +1,4 @@
-CREATE TEMPORARY TABLE {{ as_attribute_default_table(renderer.attribute) }} (
+CREATE /*TEMPORARY*/ TABLE {{ as_attribute_default_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
@@ -7,8 +7,8 @@ CREATE TEMPORARY TABLE {{ as_attribute_default_table(renderer.attribute) }} (
     UNIQUE INDEX (entity_id)
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
-    product.*,
-    {{ as_default_alias() }}.value
+    {{ as_default_alias() }}_option.code AS code,
+    product.*
 FROM tmp_sku AS product
 INNER JOIN eav_attribute AS attribute
     ON attribute.attribute_code='{{ renderer.attribute.code }}' AND attribute.entity_type_id=4
@@ -24,7 +24,7 @@ LEFT JOIN (
     ON {{ as_default_alias() }}.value={{ as_default_alias() }}_option.option_id;
 
 {% for field in renderer.fields %}
-CREATE TEMPORARY TABLE {{ as_field_table(field) }} (
+CREATE /*TEMPORARY*/ TABLE {{ as_field_table(field) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
@@ -33,11 +33,11 @@ CREATE TEMPORARY TABLE {{ as_field_table(field) }} (
     UNIQUE INDEX (entity_id)
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
-    product.*,
     COALESCE(
-        {{ as_field_alias(field) }}.code,
+        {{ as_field_alias(field) }}_option.code,
         {{ as_default_alias() }}.code
-    ) AS `code`
+    ) AS `code`,
+    product.*
 FROM tmp_sku AS product
 INNER JOIN eav_attribute AS attribute
     ON attribute.attribute_code='{{ renderer.attribute.code }}' AND attribute.entity_type_id=4
@@ -55,22 +55,24 @@ LEFT JOIN (
     ON {{ as_field_alias(field) }}.value={{ as_field_alias(field) }}_option.option_id;
 {% endfor %}
 
-CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
+CREATE /*TEMPORARY*/ TABLE {{ as_attribute_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
     {% for field in renderer.fields %}
-    `{{ as_field_alias(field) }}` VARCHAR(255) NOT NULL,
+    `{{ as_field_column(field) }}` VARCHAR(255) NULL,
     {% endfor %}
     PRIMARY KEY (sku),
     UNIQUE INDEX (entity_id)
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
     {% for field in renderer.fields -%}
-    {{ as_field_table(field) }}.value AS `{{ as_field_alias(field) }}`,
+    COALESCE({{ as_field_alias(field) }}.code, {{ as_default_alias() }}.code) AS `{{ as_field_column(field) }}`,
     {% endfor -%}
     product.*
 FROM tmp_sku AS product
+INNER JOIN {{ as_attribute_default_table(renderer.attribute) }} AS {{ as_default_alias() }}
+    ON {{ as_default_alias() }}.entity_id=product.entity_id
 {% for field in renderer.fields %}
 LEFT JOIN {{ as_field_table(field) }} AS {{ as_field_alias(field) }}
     ON {{ as_field_alias(field) }}.entity_id=product.entity_id

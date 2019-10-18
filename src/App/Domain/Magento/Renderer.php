@@ -53,9 +53,13 @@ class Renderer
 
         /** @var AttributeRenderer $attribute */
         foreach ($this->attributes as $attribute) {
-            $template = $twig->load($attribute->template());
+            try {
+                $template = $twig->load($attribute->template());
 
-            fwrite($stream, $attribute($template) . PHP_EOL);
+                fwrite($stream, $attribute($template) . PHP_EOL);
+            } catch (\RuntimeException $e) {
+                continue;
+            }
         }
 
 //        $template = $twig->load($this->finalization);

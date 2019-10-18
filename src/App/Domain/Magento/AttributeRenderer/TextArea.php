@@ -8,7 +8,7 @@ use App\Domain\Magento\FieldResolver;
 use App\Domain\Magento\VariantAxis;
 use Twig\TemplateWrapper;
 
-class Visibility implements AttributeRenderer
+class TextArea implements AttributeRenderer
 {
     /** @var Attribute */
     private $attribute;
@@ -22,7 +22,7 @@ class Visibility implements AttributeRenderer
         $this->attribute = $attribute;
 
         if ($fieldResolver instanceof VariantAxis) {
-            throw new \TypeError('Could not accept a VariantAxis renderer in a Visibility attribute.');
+            throw new \TypeError('Could not accept a VariantAxis renderer in a TextArea attribute.');
         }
 
         $this->fieldResolver = $fieldResolver;
@@ -30,7 +30,7 @@ class Visibility implements AttributeRenderer
 
     public function __toString()
     {
-        return 'visibility';
+        return 'text-area';
     }
 
     public function __invoke(TemplateWrapper $template): string

@@ -1,4 +1,4 @@
-CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
+CREATE /*TEMPORARY*/ TABLE {{ as_attribute_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,

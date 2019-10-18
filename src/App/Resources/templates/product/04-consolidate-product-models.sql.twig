@@ -1,0 +1,45 @@
+CREATE /*TEMPORARY*/ TABLE tmp_parent_models
+SELECT
+{% for attribute in attributes %}
+    {% for field in attribute.fields %}
+    {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}`,
+    {% endfor %}
+{% endfor %}
+    hierarchy.parent AS code,
+    NULL AS parent
+FROM tmp_sku AS product
+{% for attribute in attributes %}
+LEFT JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias(attribute.attribute) }}
+    ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
+{% endfor %}
+INNER JOIN (
+    SELECT DISTINCT hierarchy.parent
+    FROM tmp_hierarchy as hierarchy
+    GROUP BY hierarchy.parent
+) AS hierarchy
+    ON hierarchy.parent=product.sku
+WHERE product.type_id IN ('configurable');
+
+CREATE /*TEMPORARY*/ TABLE tmp_child_models
+SELECT
+{% for attribute in attributes %}
+    {% for field in attribute.fields %}
+    {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}`,
+    {% endfor %}
+{% endfor %}
+    hierarchy.child AS code,
+    hierarchy.parent AS parent
+FROM tmp_sku AS product
+{% for attribute in attributes %}
+LEFT JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias(attribute.attribute) }}
+    ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
+{% endfor %}
+INNER JOIN (
+    SELECT MAX(hierarchy.parent) AS parent, hierarchy.child
+    FROM tmp_hierarchy as hierarchy
+    GROUP BY hierarchy.child
+) AS hierarchy
+    ON hierarchy.parent=product.sku
+WHERE product.type_id IN ('configurable');
+
+

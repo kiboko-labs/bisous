@@ -24,10 +24,11 @@ class SqlExportTwigExtension extends AbstractExtension
                 return 'attr_default';
             }),
 
-            new TwigFunction('as_attribute_axis_table', function(Attribute $attribute) {
+            new TwigFunction('as_attribute_axis_table', function(FamilyVariant $variant, Attribute $attribute) {
                 return strtr(
-                    'tmp_axis_{{ attribute }}',
+                    'tmp_axis_{{ variant }}__{{ attribute }}',
                     [
+                        '{{ variant }}' => $variant->code,
                         '{{ attribute }}' => $attribute->code(),
                     ]
                 );

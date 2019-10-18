@@ -4,11 +4,11 @@ SELECT
     {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}`,
     {% endfor %}
 {% endfor %}
-    product.sku AS sku,
-    COALESCE(hierarchy.child, hierarchy.parent) AS product_model
+    product.sku AS code,
+    COALESCE(hierarchy.child, hierarchy.parent) AS parent
 FROM tmp_sku AS product
 {% for attribute in attributes %}
-INNER JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias(attribute.attribute) }}
+LEFT JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias(attribute.attribute) }}
     ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
 {% endfor %}
 LEFT JOIN tmp_hierarchy as hierarchy

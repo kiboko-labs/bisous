@@ -40,10 +40,16 @@ class TwigCommand implements CommandInterface, LoggerAwareInterface
             $this->logger->debug('Compiling template {template}.', ['template' => $this->twigTemplate]);
 
             $view = $this->twig->load($this->twigTemplate);
+            $queries = explode(';', $view->render($this->twigContext));
 
-            $this->logger->debug($query = $view->render($this->twigContext));
-
-            $connection->exec($query);
+            foreach ($queries as $query) {
+                $query = trim($query);
+                if (empty($query)) {
+                    continue;
+                }
+                $this->logger->debug($query);
+                $connection->exec($query);
+            }
         } catch (LoaderError|RuntimeError|SyntaxError $e) {
             throw new \RuntimeException(
                 'An error occurred during the data preparation SQL rendering: '

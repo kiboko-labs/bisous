@@ -5,11 +5,13 @@ namespace App\Infrastructure\Console\Command;
 use App\Domain\Fixture;
 use App\Domain\Magento\Attribute;
 use App\Domain\Magento\AttributeRenderer;
+use App\Domain\Magento\Family;
 use App\Domain\Magento\Locale;
 use App\Domain\Magento\Scope;
 use App\Domain\Magento\SqlExportTwigExtension;
 use App\Infrastructure\AttributeRendererFactory;
 use App\Infrastructure\Configuration\YamlFileLoader;
+use App\Infrastructure\FamiliesFactory;
 use App\Infrastructure\Normalizer\Magento\AttributeDenormalizerFactory;
 use App\Infrastructure\Normalizer\Magento\LocaleDenormalizerFactory;
 use App\Infrastructure\Normalizer\Magento\ScopeDenormalizerFactory;
@@ -161,6 +163,7 @@ class GoCommand extends Command
             array_keys($config['locales']),
             $config['codes_mapping']
         );
+        die;
 
         $style->writeln('attribute options <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
 
@@ -189,10 +192,13 @@ class GoCommand extends Command
 
         $style->writeln('family variants <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
 
+        /** @var Attribute[] $attributes */
         $attributes = (new AttributeDenormalizerFactory())()
             ->denormalize($config['attributes'], Attribute::class.'[]');
+        /** @var Scope[] $scopes */
         $scopes = (new ScopeDenormalizerFactory())()
             ->denormalize($config['scopes'], Scope::class.'[]');
+        /** @var Locale[] $locales */
         $locales = (new LocaleDenormalizerFactory())()
             ->denormalize($config['scopes'], Locale::class.'[]');
 
@@ -221,17 +227,20 @@ class GoCommand extends Command
             $config['attributes']
         );
 
+        /** @var Family[] $families */
+        $families = (new FamiliesFactory(...$attributeRenderers))($config);
         /** @var Attribute[] $axises */
         $axises = (new VariantAxisesFactory(...$attributeRenderers))($config);
 
-        (new Fixture\Command\ExtractSimpleProducts($pdo, $twig, $this->logger))(
+        (new Fixture\Command\ExtractProducts($pdo, $twig, $this->logger))(
             new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/products.csv', 'w'),
+            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/product-models.csv', 'w'),
             $attributeRenderers,
+            $families,
             $axises
         );
 
-        $style->writeln('products <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
-        $style->writeln('product models <fg=red>nok</>', SymfonyStyle::OUTPUT_PLAIN);
+        $style->writeln('products and product models <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
 
         return 0;
     }

@@ -1,7 +1,7 @@
-CREATE TEMPORARY TABLE tmp_options (
+CREATE /*TEMPORARY*/ TABLE tmp_options (
     option_id INTEGER NOT NULL,
     code VARCHAR(256) NOT NULL,
-    short_code VARCHAR(256) NOT NULL,
+    short_code VARCHAR(255) NOT NULL,
     attribute VARCHAR(128) NOT NULL,
     sort_order INTEGER NOT NULL,
     PRIMARY KEY (option_id),

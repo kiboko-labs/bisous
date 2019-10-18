@@ -8,7 +8,7 @@ use App\Domain\Magento\FieldResolver;
 use App\Domain\Magento\VariantAxis;
 use Twig\TemplateWrapper;
 
-class Visibility implements AttributeRenderer
+class RichText implements AttributeRenderer
 {
     /** @var Attribute */
     private $attribute;
@@ -22,7 +22,7 @@ class Visibility implements AttributeRenderer
         $this->attribute = $attribute;
 
         if ($fieldResolver instanceof VariantAxis) {
-            throw new \TypeError('Could not accept a VariantAxis renderer in a Visibility attribute.');
+            throw new \TypeError('Could not accept a VariantAxis renderer in a RichText attribute.');
         }
 
         $this->fieldResolver = $fieldResolver;
@@ -30,7 +30,7 @@ class Visibility implements AttributeRenderer
 
     public function __toString()
     {
-        return 'visibility';
+        return 'rich-text';
     }
 
     public function __invoke(TemplateWrapper $template): string

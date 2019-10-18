@@ -8,7 +8,7 @@ use App\Domain\Magento\FieldResolver;
 use App\Domain\Magento\VariantAxis;
 use Twig\TemplateWrapper;
 
-class Varchar implements AttributeRenderer
+class Identifier implements AttributeRenderer
 {
     /** @var Attribute */
     private $attribute;
@@ -21,8 +21,11 @@ class Varchar implements AttributeRenderer
     ) {
         $this->attribute = $attribute;
 
+        if (!$attribute instanceof Attribute\AdHoc) {
+            throw new \TypeError('The identifier attribute must be be ad-hoc.');
+        }
         if ($fieldResolver instanceof VariantAxis) {
-            throw new \TypeError('Could not accept a VariantAxis renderer in a Varchar attrinute.');
+            throw new \TypeError('Could not accept a VariantAxis renderer in an Identifier attribute.');
         }
 
         $this->fieldResolver = $fieldResolver;
@@ -30,24 +33,17 @@ class Varchar implements AttributeRenderer
 
     public function __toString()
     {
-        return 'varchar';
+        return 'identifier';
     }
 
     public function __invoke(TemplateWrapper $template): string
     {
-        if ($this->attribute instanceof Attribute\ExNihilo) {
-            return '';
-        }
-
-        return $template->render([
-            'attribute' => $this->attribute,
-            'fields' => $this->fields(),
-        ]);
+        return '';
     }
 
     public function template(): string
     {
-        return $this->fieldResolver->template($this);
+        throw new \RuntimeException('This renderer has no template.');
     }
 
     public function attribute(): Attribute

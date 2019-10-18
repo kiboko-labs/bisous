@@ -27,7 +27,7 @@ class Configuration implements ConfigurationInterface
                                 ->isRequired()
                                 ->values([
                                     'identifier',
-                                    'string',
+                                    'text-area',
                                     'text',
                                     'rich-text',
                                     'simple-select',

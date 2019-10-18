@@ -4,7 +4,10 @@ namespace App\Domain\Fixture\Command;
 
 use App\Domain\Fixture\SqlToCsv;
 use App\Domain\Magento\AttributeRenderer;
+use App\Domain\Magento\Family;
 use App\Domain\Magento\FamilyVariant;
+use App\Infrastructure\AttributeAggregator;
+use App\Infrastructure\FamilyVariantAxisAttributeAggregator;
 use App\Infrastructure\Command\CommandBus;
 use App\Infrastructure\Command\TwigCommand;
 use Psr\Log\LoggerAwareInterface;
@@ -17,7 +20,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class ExtractSimpleProducts implements LoggerAwareInterface
+class ExtractProducts implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -35,10 +38,16 @@ class ExtractSimpleProducts implements LoggerAwareInterface
 
     /**
      * @param AttributeRenderer[] $attributes
+     * @param Family[] $families
      * @param FamilyVariant[] $familyVariants
      */
-    public function __invoke(\SplFileObject $output, array $attributes, array $familyVariants): void
-    {
+    public function __invoke(
+        \SplFileObject $productModelOutput,
+        \SplFileObject $productOutput,
+        array $attributes,
+        array $families,
+        array $familyVariants
+    ): void {
         $bus = new CommandBus();
         try {
             $bus->add(
@@ -53,7 +62,7 @@ class ExtractSimpleProducts implements LoggerAwareInterface
                     'product/01-attribute-options.sql.twig',
                     [
                         'mapping' => [],
-                        'attributes' => $attributes,
+                        'attributes' => (new AttributeAggregator())(...$families),
                     ],
                     $this->logger
                 ),
@@ -79,16 +88,20 @@ class ExtractSimpleProducts implements LoggerAwareInterface
                     ));
                 }
 
-                $bus->add(
-                    new TwigCommand(
-                        $this->twig,
-                        $attribute->template(),
-                        [
-                            'renderer' => $attribute,
-                        ],
-                        $this->logger
-                    )
-                );
+                try {
+                    $bus->add(
+                        new TwigCommand(
+                            $this->twig,
+                            $attribute->template(),
+                            [
+                                'renderer' => $attribute,
+                            ],
+                            $this->logger
+                        )
+                    );
+                } catch (\RuntimeException $e) {
+                    continue;
+                }
             }
 
             $bus->add(
@@ -102,6 +115,17 @@ class ExtractSimpleProducts implements LoggerAwareInterface
                 )
             );
 
+            $bus->add(
+                new TwigCommand(
+                    $this->twig,
+                    'product/04-consolidate-product-models.sql.twig',
+                    [
+                        'attributes' => (new FamilyVariantAxisAttributeAggregator())(...$familyVariants),
+                    ],
+                    $this->logger
+                )
+            );
+
             $bus($this->pdo);
 
             $view = $this->twig->load('extract-products.sql.twig');
@@ -109,10 +133,21 @@ class ExtractSimpleProducts implements LoggerAwareInterface
             (new SqlToCsv($this->pdo, $this->logger))
             (
                 $view->render([
-                    'attributes' => $attributes,
+                    'attributes' => (new AttributeAggregator())(...$families),
                     'variants' => $familyVariants,
                 ]),
-                $output
+                $productOutput
+            );
+
+            $view = $this->twig->load('extract-product-models.sql.twig');
+
+            (new SqlToCsv($this->pdo, $this->logger))
+            (
+                $view->render([
+                    'attributes' => (new AttributeAggregator())(...$families),
+                    'variants' => $familyVariants,
+                ]),
+                $productModelOutput
             );
         } catch (\RuntimeException|LoaderError|RuntimeError|SyntaxError|FatalThrowableError $e) {
             throw new \RuntimeException('An error occurred during the product data extraction.', null, $e);

@@ -1,4 +1,4 @@
-CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
+CREATE /*TEMPORARY*/ TABLE {{ as_attribute_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
@@ -10,7 +10,7 @@ CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
     {% for field in renderer.fields -%}
-    {{ as_default_alias() }}.value AS `{{ as_field_alias(field) }}`,
+    {{ as_default_alias() }}_option.code AS `{{ as_field_alias(field) }}`,
     {% endfor -%}
     product.*
 FROM tmp_sku AS product

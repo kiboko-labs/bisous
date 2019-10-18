@@ -22,7 +22,7 @@ class Datetime implements AttributeRenderer
         $this->attribute = $attribute;
 
         if ($fieldResolver instanceof VariantAxis) {
-            throw new \TypeError('Could not accept a VariantAxis renderer in a Datetime attrinute.');
+            throw new \TypeError('Could not accept a VariantAxis renderer in a Datetime attribute.');
         }
 
         $this->fieldResolver = $fieldResolver;

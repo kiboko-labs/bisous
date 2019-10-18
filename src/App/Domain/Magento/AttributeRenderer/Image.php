@@ -22,7 +22,7 @@ class Image implements AttributeRenderer
         $this->attribute = $attribute;
 
         if ($fieldResolver instanceof VariantAxis) {
-            throw new \TypeError('Could not accept a VariantAxis renderer in am Image attrinute.');
+            throw new \TypeError('Could not accept a VariantAxis renderer in am Image attribute.');
         }
 
         $this->fieldResolver = $fieldResolver;

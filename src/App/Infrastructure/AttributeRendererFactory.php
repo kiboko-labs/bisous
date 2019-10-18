@@ -53,6 +53,19 @@ class AttributeRendererFactory
             $attributeSpec = $config[$attribute->code()];
 
             switch ($attributeSpec['type']) {
+                case 'identifier':
+                    yield new AttributeRenderer\Identifier(
+                        $attribute,
+                        $this->buildFieldResolver(
+                            false,
+                            false,
+                            false,
+                            $scopes,
+                            $locales
+                        )
+                    );
+                    break;
+
                 case 'datetime':
                     yield new AttributeRenderer\Datetime(
                         $attribute,
@@ -97,6 +110,32 @@ class AttributeRendererFactory
                         $attribute,
                         $this->buildFieldResolver(
                             false,
+                            true,
+                            true,
+                            $scopes,
+                            $locales
+                        )
+                    );
+                    break;
+
+                case 'text-area':
+                    yield new AttributeRenderer\TextArea(
+                        $attribute,
+                        $this->buildFieldResolver(
+                            false,
+                            $attributeSpec['scoped'] ?? false,
+                            $attributeSpec['localised'] ?? false,
+                            $scopes,
+                            $locales
+                        )
+                    );
+                    break;
+
+                case 'rich-text':
+                    yield new AttributeRenderer\RichText(
+                        $attribute,
+                        $this->buildFieldResolver(
+                            false,
                             $attributeSpec['scoped'] ?? false,
                             $attributeSpec['localised'] ?? false,
                             $scopes,
@@ -118,30 +157,39 @@ class AttributeRendererFactory
                     );
                     break;
 
-                case 'varchar':
-                    yield new AttributeRenderer\Varchar(
+                case 'visibility':
+                    yield new AttributeRenderer\Visibility(
                         $attribute,
                         $this->buildFieldResolver(
                             false,
-                            $attributeSpec['scoped'] ?? false,
-                            $attributeSpec['localised'] ?? false,
+                            true,
+                            true,
                             $scopes,
                             $locales
                         )
                     );
                     break;
 
-                case 'visibility':
-                    yield new AttributeRenderer\Visibility(
+                case 'metric':
+                    yield new AttributeRenderer\Metric(
                         $attribute,
                         $this->buildFieldResolver(
                             false,
-                            $attributeSpec['scoped'] ?? false,
-                            $attributeSpec['localised'] ?? false,
+                            true,
+                            true,
                             $scopes,
                             $locales
                         )
                     );
+                    break;
+
+                default:
+                    throw new \UnexpectedValueException(strtr(
+                        'Could not handle attribute of type %type%',
+                        [
+                            '%type%' => $attributeSpec['type']
+                        ]
+                    ));
                     break;
             }
         }
