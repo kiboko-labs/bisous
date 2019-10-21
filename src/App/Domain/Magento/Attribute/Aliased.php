@@ -10,11 +10,19 @@ class Aliased implements Attribute
     public $code;
     /** @var string */
     public $source;
+    /** @var string */
+    public $group;
 
-    public function __construct(string $code, string $source)
+    public function __construct(string $code, string $source, string $group)
     {
         $this->code = $code;
         $this->source = $source;
+        $this->group = $group;
+    }
+
+    public function __toString()
+    {
+        return 'aliased';
     }
 
     public function code(): string

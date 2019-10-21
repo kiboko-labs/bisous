@@ -4,8 +4,7 @@ SELECT
         {% for locale in locales %}
         attributes.frontend_label AS "label-{{ locale }}",
         {% endfor -%}
-        attributes.groups,
---         GROUP_CONCAT(', ', ) AS "group",
+        codes.`group` AS `group`,
         IF(attributes.is_unique, '1', '0') AS "unique",
         COALESCE(
             codes.useable_as_grid_filter,
@@ -19,8 +18,8 @@ SELECT
             END
         ) AS "useable_as_grid_filter",
         NULL AS "allowed_extensions",
-        NULL AS "metric_family",
-        NULL AS "default_metric_unit",
+        type_mapping.metric_family AS "metric_family",
+        type_mapping.default_metric_unit AS "default_metric_unit",
         NULL AS "reference_data_name",
         COALESCE(
             codes.localizable,
@@ -31,47 +30,68 @@ SELECT
                 WHEN 'pim_catalog_textarea' THEN '0'
                 WHEN 'pim_catalog_text' THEN '0'
                 WHEN 'pim_catalog_image' THEN '0'
-                ELSE '1' END
+                ELSE '1'
+            END
         ) AS "localizable",
         COALESCE(
             codes.scopable,
             CASE COALESCE(codes.type, type_mapping.akeneo_type)
                 WHEN 'pim_catalog_identifier' THEN '0'
-                ELSE '1' END
+                ELSE '1'
+            END
         ) AS "scopable",
-        CASE codes.code
-            WHEN 'description' THEN '1'
-            ELSE '' END
-        AS "wysiwyg_enabled"
+        codes.wysiwyg_enabled AS "wysiwyg_enabled",
+        CASE COALESCE(codes.type, type_mapping.akeneo_type)
+            WHEN 'pim_catalog_metric' THEN '1'
+            WHEN 'pim_catalog_number' THEN '0'
+            ELSE NULL
+        END AS "negative_allowed",
+        CASE COALESCE(codes.type, type_mapping.akeneo_type)
+            WHEN 'pim_catalog_metric' THEN '1'
+            WHEN 'pim_catalog_number' THEN '1'
+            ELSE NULL
+        END AS "decimals_allowed"
 
 FROM (
 {%- set renderedAttributes = [] -%}
 
-{%- for code, attribute in attributes -%}
+{%- for attribute in attributes -%}
     {% set renderedAttribute %}
-    SELECT '{{ attribute.code|default(code) }}' AS code,
-        {% if attribute.type is same as('string') -%}
-        'pim_catalog_varchar'
-            {%- elseif attribute.type is same as('identifier') -%}
-            'pim_catalog_identifier'
-            {%- elseif attribute.type is same as('text') or attribute.type is same as('rich-text') -%}
-            'pim_catalog_textarea'
-            {%- elseif attribute.type is same as('simple-select') or attribute.type is same as('status') or attribute.type is same as('visibility') -%}
-            'pim_catalog_simpleselect'
-            {%- elseif attribute.type is same as('multi-select') -%}
-            'pim_catalog_multiselect'
-            {%- elseif attribute.type is same as('image') -%}
-            'pim_catalog_image'
-            {%- elseif attribute.type is same as('metric') -%}
-           'pim_catalog_metric'
-            {%- elseif attribute.type is same as('datetime') -%}
-            'pim_catalog_datetime'
-        {%- else -%} NULL
-        {%- endif %} AS type,
-        {{ attribute.localizable|default(false) ? '1' : '0' }} AS localizable,
-        {{ attribute.scopable|default(false) ? '1' : '0' }} AS scopable,
+    SELECT '{{ attribute.attribute.code }}' AS code,
+        {% if (attribute ~ '') is same as('text') -%}
+            'pim_catalog_text' AS type,
+        {%- elseif (attribute ~ '') is same as('identifier') -%}
+            'pim_catalog_identifier' AS type,
+        {%- elseif (attribute ~ '') is same as('text-area') or (attribute ~ '') is same as('rich-text') -%}
+            'pim_catalog_textarea' AS type,
+        {%- elseif (attribute ~ '') is same as('simple-select') or (attribute ~ '') is same as('status') or (attribute ~ '') is same as('visibility') -%}
+            'pim_catalog_simpleselect' AS type,
+        {%- elseif (attribute ~ '') is same as('multi-select') -%}
+            'pim_catalog_multiselect' AS type,
+        {%- elseif (attribute ~ '') is same as('image') -%}
+            'pim_catalog_image' AS type,
+        {%- elseif (attribute ~ '') is same as('metric') -%}
+           'pim_catalog_metric' AS type,
+        {%- elseif (attribute ~ '') is same as('number') -%}
+           'pim_catalog_number' AS type,
+        {%- elseif (attribute ~ '') is same as('datetime') -%}
+            'pim_catalog_date' AS type,
+        {%- else -%}
+            NULL AS type,
+        {%- endif %}
+        {{ attribute.isLocalized|default(false) ? '1' : '0' }} AS localizable,
+        {{ attribute.isScoped|default(false) ? '1' : '0' }} AS scopable,
+        {% if (attribute ~ '') is same as('identifier') -%}
+        1 AS useable_as_grid_filter,
+        {% else %}
         {{ attribute.usableAsGridFilter|default(false) ? '1' : '0' }} AS useable_as_grid_filter,
-        {{ attribute.type is same as('rich-text') ? '1' : '0' }} AS wysiwyg_enabled
+        {% endif %}
+        {% if (attribute ~ '') is same as('rich-text') or (attribute ~ '') is same as('text-area') -%}
+        {{ (attribute ~ '') is same as('rich-text') ? '1' : '0' }} AS wysiwyg_enabled,
+        {%- else -%}
+        NULL AS wysiwyg_enabled,
+        {%- endif %}
+        '{{ attribute.attribute.group }}' AS `group`
     {%  endset %}
 
     {%- set renderedAttributes = renderedAttributes|merge([renderedAttribute]) -%}
@@ -79,7 +99,8 @@ FROM (
     {{ renderedAttributes|join(' UNION ') }}
 ) AS codes
 LEFT JOIN (
-    SELECT attribute.*, GROUP_CONCAT(', ', attribute_group.attribute_group_name) AS groups
+    SELECT
+    attribute.*
     FROM eav_attribute AS attribute
     INNER JOIN eav_entity_attribute AS entity_attribute
         ON attribute.attribute_id=entity_attribute.attribute_id

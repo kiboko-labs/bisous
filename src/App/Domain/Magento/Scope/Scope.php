@@ -22,6 +22,11 @@ class Scope implements ScopeInterface
         $this->locales = $locales;
     }
 
+    public function __toString()
+    {
+        return $this->code;
+    }
+
     public function locales(): iterable
     {
         return $this->locales;

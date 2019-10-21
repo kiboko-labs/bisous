@@ -9,7 +9,7 @@ class AliasedNormalizer implements DenormalizerInterface
 {
     public function denormalize($data, $type, $format = null, array $context = [])
     {
-        return new Attribute\Aliased($data['code'], $data['source']);
+        return new Attribute\Aliased($data['code'], $data['source'], $data['group']);
     }
 
     public function supportsDenormalization($data, $type, $format = null)

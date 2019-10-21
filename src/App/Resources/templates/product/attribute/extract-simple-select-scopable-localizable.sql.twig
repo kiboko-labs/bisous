@@ -1,13 +1,19 @@
-CREATE /*TEMPORARY*/ TABLE {{ as_attribute_default_table(renderer.attribute) }} (
+CREATE TEMPORARY TABLE {{ as_attribute_default_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
-    code VARCHAR(255) NULL,
+    {%- for field in renderer.fields -%}
+    `{{ as_field_column(field) }}` VARCHAR(255) NULL,
+    `{{ as_field_column(field) }}__short` VARCHAR(255) NULL,
+    {% endfor -%}
     PRIMARY KEY (sku),
     UNIQUE INDEX (entity_id)
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
-    {{ as_default_alias() }}_option.code AS code,
+    {% for field in renderer.fields -%}
+    {{ as_default_alias() }}_option.code AS `{{ as_field_column(field) }}`,
+    {{ as_default_alias() }}_option.short_code AS `{{ as_field_column(field) }}__short`,
+    {% endfor -%}
     product.*
 FROM tmp_sku AS product
 INNER JOIN eav_attribute AS attribute
@@ -18,25 +24,30 @@ INNER JOIN catalog_product_entity_int AS {{ as_default_alias() }}
     AND {{ as_default_alias() }}.store_id=0
 LEFT JOIN (
     SELECT *
-    FROM tmp_options
+    FROM tmp_options 
     WHERE attribute LIKE '{{ renderer.attribute.code }}'
 ) AS {{ as_default_alias() }}_option
     ON {{ as_default_alias() }}.value={{ as_default_alias() }}_option.option_id;
 
 {% for field in renderer.fields %}
-CREATE /*TEMPORARY*/ TABLE {{ as_field_table(field) }} (
+CREATE TEMPORARY TABLE {{ as_field_table(field) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
-    code VARCHAR(255) NULL,
+    `{{ as_field_column(field) }}` VARCHAR(255) NULL,
+    `{{ as_field_column(field) }}__short` VARCHAR(255) NULL,
     PRIMARY KEY (sku),
     UNIQUE INDEX (entity_id)
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
     COALESCE(
         {{ as_field_alias(field) }}_option.code,
-        {{ as_default_alias() }}.code
-    ) AS `code`,
+        {{ as_default_alias() }}.`{{ as_field_column(field) }}`
+    ) AS `{{ as_field_column(field) }}`,
+    COALESCE(
+        {{ as_field_alias(field) }}_option.short_code,
+        {{ as_default_alias() }}.`{{ as_field_column(field) }}__short`
+    ) AS `{{ as_field_column(field) }}__short`,
     product.*
 FROM tmp_sku AS product
 INNER JOIN eav_attribute AS attribute
@@ -55,7 +66,7 @@ LEFT JOIN (
     ON {{ as_field_alias(field) }}.value={{ as_field_alias(field) }}_option.option_id;
 {% endfor %}
 
-CREATE /*TEMPORARY*/ TABLE {{ as_attribute_table(renderer.attribute) }} (
+CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
@@ -67,7 +78,14 @@ CREATE /*TEMPORARY*/ TABLE {{ as_attribute_table(renderer.attribute) }} (
 ) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SELECT
     {% for field in renderer.fields -%}
-    COALESCE({{ as_field_alias(field) }}.code, {{ as_default_alias() }}.code) AS `{{ as_field_column(field) }}`,
+    COALESCE(
+        {{ as_field_alias(field) }}.`{{ as_field_column(field) }}`,
+        {{ as_default_alias() }}.`{{ as_field_column(field) }}`
+    ) AS `{{ as_field_column(field) }}`,
+    COALESCE(
+        {{ as_field_alias(field) }}.`{{ as_field_column(field) }}__short`,
+        {{ as_default_alias() }}.`{{ as_field_column(field) }}__short`
+    ) AS `{{ as_field_column(field) }}__short`,
     {% endfor -%}
     product.*
 FROM tmp_sku AS product

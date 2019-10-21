@@ -18,6 +18,11 @@ class LocaleMapping implements LocaleInterface
         $this->store = $store;
     }
 
+    public function __toString()
+    {
+        return (string) $this->locale;
+    }
+
     public function code(): string
     {
         return $this->locale->code();

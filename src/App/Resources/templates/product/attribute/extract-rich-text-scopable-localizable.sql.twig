@@ -1,4 +1,4 @@
-CREATE /*TEMPORARY*/ TABLE {{ as_attribute_table(renderer.attribute) }} (
+CREATE TEMPORARY TABLE {{ as_attribute_table(renderer.attribute) }} (
     sku VARCHAR(128) NOT NULL,
     entity_id INTEGER NOT NULL,
     type_id VARCHAR(32) NOT NULL,
@@ -15,7 +15,7 @@ SELECT
     product.*
 FROM tmp_sku AS product
 INNER JOIN eav_attribute AS attribute
-    ON attribute.attribute_code='{{ attribute.codeInSource }}' AND attribute.entity_type_id=4
+    ON attribute.attribute_code='{{ renderer.attribute.code }}' AND attribute.entity_type_id=4
 LEFT JOIN catalog_product_entity_text AS {{ as_default_alias() }}
     ON {{ as_default_alias() }}.entity_id=product.entity_id
     AND {{ as_default_alias() }}.attribute_id=attribute.attribute_id

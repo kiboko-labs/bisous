@@ -10,6 +10,9 @@ use Twig\TemplateWrapper;
 
 class TextArea implements AttributeRenderer
 {
+    use ScopingAwareTrait;
+    use LocalizationAwareTrait;
+
     /** @var Attribute */
     private $attribute;
     /** @var FieldResolver */

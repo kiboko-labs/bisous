@@ -1,4 +1,4 @@
-CREATE /*TEMPORARY*/ TABLE tmp_options (
+CREATE TEMPORARY TABLE tmp_options (
     option_id INTEGER NOT NULL,
     code VARCHAR(256) NOT NULL,
     short_code VARCHAR(255) NOT NULL,
@@ -22,7 +22,6 @@ SELECT
     SUBSTRING({{ codeMapping }}, 1, 99 - LENGTH(codes.code)) AS short_code,
     attribute.attribute_code AS attribute,
     opt.sort_order AS sort_order
-
 FROM (
 {%- set renderedAttributes = [] -%}
 
@@ -33,7 +32,7 @@ FROM (
 
     {%- set renderedAttributes = renderedAttributes|merge([renderedAttribute]) -%}
 {%- endfor -%}
-    {{ renderedAttributes|join(' UNION ') }}
+    {{ renderedAttributes|join('UNION\n') }}
 ) AS codes
 INNER JOIN eav_attribute AS attribute
     ON codes.code = attribute.attribute_code

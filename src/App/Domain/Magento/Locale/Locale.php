@@ -18,6 +18,11 @@ class Locale implements LocaleInterface
         $this->default = $default;
     }
 
+    public function __toString()
+    {
+        return $this->code;
+    }
+
     public function code(): string
     {
         return $this->code;

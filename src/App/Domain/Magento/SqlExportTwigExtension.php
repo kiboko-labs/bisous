@@ -95,7 +95,7 @@ class SqlExportTwigExtension extends AbstractExtension
                     /** @var Field $field */
                     foreach ($attribute->fields() as $field) {
                         $replacements['%' . $attribute->attribute()->code() . '%'] = strtr(
-                            '{{ alias }}.{{ field }}',
+                            '{{ alias }}.{{ field }}__short',
                             [
                                 '{{ alias }}' => $field->codeGenerator->alias(),
                                 '{{ field }}' => $field->codeGenerator->column(),

@@ -1,4 +1,4 @@
-CREATE /*TEMPORARY*/ TABLE tmp_parent_models
+CREATE TEMPORARY TABLE tmp_parent_models
 SELECT
 {% for attribute in attributes %}
     {% for field in attribute.fields %}
@@ -6,6 +6,7 @@ SELECT
     {% endfor %}
 {% endfor %}
     hierarchy.parent AS code,
+    hierarchy.family_variant AS family_variant,
     NULL AS parent
 FROM tmp_sku AS product
 {% for attribute in attributes %}
@@ -13,21 +14,22 @@ LEFT JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias
     ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
 {% endfor %}
 INNER JOIN (
-    SELECT DISTINCT hierarchy.parent
+    SELECT DISTINCT hierarchy.parent, hierarchy.family_variant
     FROM tmp_hierarchy as hierarchy
-    GROUP BY hierarchy.parent
+    GROUP BY hierarchy.parent, hierarchy.family_variant
 ) AS hierarchy
     ON hierarchy.parent=product.sku
 WHERE product.type_id IN ('configurable');
 
-CREATE /*TEMPORARY*/ TABLE tmp_child_models
+CREATE TEMPORARY TABLE tmp_child_models
 SELECT
 {% for attribute in attributes %}
     {% for field in attribute.fields %}
-    {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}`,
+    hierarchy.`{{ as_field_column(field) }}`,
     {% endfor %}
 {% endfor %}
     hierarchy.child AS code,
+    hierarchy.family_variant AS family_variant,
     hierarchy.parent AS parent
 FROM tmp_sku AS product
 {% for attribute in attributes %}
@@ -35,9 +37,24 @@ LEFT JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias
     ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
 {% endfor %}
 INNER JOIN (
-    SELECT MAX(hierarchy.parent) AS parent, hierarchy.child
+    SELECT
+    {% for attribute in attributes %}
+        {% for field in attribute.fields %}
+        hierarchy.`{{ as_field_column(field) }}`,
+        {% endfor %}
+    {% endfor %}
+        MAX(hierarchy.parent) AS parent,
+        MAX(hierarchy.family_variant) AS family_variant,
+        hierarchy.child
     FROM tmp_hierarchy as hierarchy
-    GROUP BY hierarchy.child
+    GROUP BY
+    {% for attribute in attributes %}
+        {% for field in attribute.fields %}
+    hierarchy.`{{ as_field_column(field) }}`,
+        {% endfor %}
+    {% endfor %}
+        hierarchy.child,
+        hierarchy.family_variant
 ) AS hierarchy
     ON hierarchy.parent=product.sku
 WHERE product.type_id IN ('configurable');

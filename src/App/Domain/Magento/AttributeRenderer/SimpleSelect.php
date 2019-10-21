@@ -10,6 +10,9 @@ use Twig\TemplateWrapper;
 
 class SimpleSelect implements AttributeRenderer
 {
+    use ScopingAwareTrait;
+    use LocalizationAwareTrait;
+
     /** @var Attribute */
     private $attribute;
     /** @var FieldResolver */
@@ -25,7 +28,7 @@ class SimpleSelect implements AttributeRenderer
 
     public function __toString()
     {
-        return 'simpleselect';
+        return 'simple-select';
     }
 
     public function __invoke(TemplateWrapper $template): string

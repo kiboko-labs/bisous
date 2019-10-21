@@ -18,6 +18,11 @@ class ScopeMapping implements ScopeInterface
         $this->store = $store;
     }
 
+    public function __toString()
+    {
+        return (string) $this->scope;
+    }
+
     public function locales(): iterable
     {
         return $this->scope->locales();

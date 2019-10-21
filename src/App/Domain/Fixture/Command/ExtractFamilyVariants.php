@@ -28,19 +28,24 @@ class ExtractFamilyVariants
         (
             (function(array $families, array $locales) {
                 foreach ($families as $familyCode => $family) {
-                    foreach ($family['variations'] as $variationCode => $variation) {
+                    foreach ($family['variations'] as $variation) {
                         yield array_merge(
                             [
-                                'code' => $variationCode,
+                                'code' => $variation['code'],
                                 'family' => $familyCode,
                                 'variant-axes_1' => isset($variation['level_1']) ? implode(',', $variation['level_1']['axis']) : null,
                                 'variant-axes_2' => isset($variation['level_2']) ? implode(',', $variation['level_2']['axis']) : null,
                                 'variant-attributes_1' => isset($variation['level_1']) ? implode(',', $variation['level_1']['attributes']) : null,
                                 'variant-attributes_2' => isset($variation['level_2']) ? implode(',', $variation['level_2']['attributes']) : null,
                             ],
-                            ...array_map(function ($locale) use ($familyCode) {
+                            ...array_map(function ($locale) use ($variation) {
                                 return [
-                                    'label-' . $locale => sprintf('%s (%s)', $familyCode, $locale),
+                                    'label-' . $locale => sprintf(
+                                        '%s [%s] (%s)',
+                                        $variation['code'],
+                                        implode(', ', array_merge($variation['level_1']['axis'] ?? [], $variation['level_2']['axis'] ?? [])),
+                                        $locale
+                                    ),
                                 ];
                             }, $locales)
                         );

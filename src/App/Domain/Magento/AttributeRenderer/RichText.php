@@ -10,6 +10,9 @@ use Twig\TemplateWrapper;
 
 class RichText implements AttributeRenderer
 {
+    use ScopingAwareTrait;
+    use LocalizationAwareTrait;
+
     /** @var Attribute */
     private $attribute;
     /** @var FieldResolver */

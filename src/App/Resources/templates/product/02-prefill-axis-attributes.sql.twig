@@ -1,7 +1,7 @@
 {% for variant in variants %}
     {% for axis in variant.all %}
         {% for attribute in axis.attributes %}
-CREATE /*TEMPORARY*/ TABLE {{ as_attribute_axis_table(variant, attribute.attribute) }} (
+CREATE TEMPORARY TABLE {{ as_attribute_axis_table(variant, attribute.attribute) }} (
     entity_id INTEGER NOT NULL,
     code VARCHAR(256) NOT NULL,
     short_code VARCHAR(256) NOT NULL,

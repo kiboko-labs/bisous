@@ -9,7 +9,7 @@ class ExNihiloNormalizer implements DenormalizerInterface
 {
     public function denormalize($data, $type, $format = null, array $context = [])
     {
-        return new Attribute\ExNihilo($data['code']);
+        return new Attribute\ExNihilo($data['code'], $data['group']);
     }
 
     public function supportsDenormalization($data, $type, $format = null)

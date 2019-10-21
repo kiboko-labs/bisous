@@ -10,6 +10,9 @@ use Twig\TemplateWrapper;
 
 class Text implements AttributeRenderer
 {
+    use ScopingAwareTrait;
+    use LocalizationAwareTrait;
+
     /** @var Attribute */
     private $attribute;
     /** @var FieldResolver */

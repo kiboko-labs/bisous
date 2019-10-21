@@ -12,4 +12,6 @@ interface AttributeRenderer
     public function attribute(): Attribute;
     public function fields(): iterable;
     public function isAxis(): bool;
+    public function isScoped(): bool;
+    public function isLocalized(): bool;
 }

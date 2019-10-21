@@ -6,9 +6,12 @@ use App\Domain\Magento\FamilyVariant;
 
 class FamilyVariantAxisAttributeAggregator
 {
-    public function __invoke(FamilyVariant ...$variants): iterable
+    public function __invoke(FamilyVariant ...$variants): array
     {
-        return array_unique(iterator_to_array($this->walk(...$variants)));
+        return array_unique(
+            iterator_to_array($this->walk(...$variants)),
+            SORT_REGULAR
+        );
     }
 
     private function walk(FamilyVariant ...$variants): \Iterator

@@ -3,6 +3,7 @@
 namespace App\Domain\Fixture\Command;
 
 use App\Domain\Fixture\SqlToCsv;
+use App\Domain\Magento\Attribute\ExNihilo;
 use App\Domain\Magento\AttributeRenderer;
 use App\Domain\Magento\Family;
 use App\Domain\Magento\FamilyVariant;
@@ -42,11 +43,12 @@ class ExtractProducts implements LoggerAwareInterface
      * @param FamilyVariant[] $familyVariants
      */
     public function __invoke(
-        \SplFileObject $productModelOutput,
         \SplFileObject $productOutput,
+        \SplFileObject $productModelOutput,
         array $attributes,
         array $families,
-        array $familyVariants
+        array $familyVariants,
+        array $mapping
     ): void {
         $bus = new CommandBus();
         try {
@@ -61,8 +63,11 @@ class ExtractProducts implements LoggerAwareInterface
                     $this->twig,
                     'product/01-attribute-options.sql.twig',
                     [
-                        'mapping' => [],
-                        'attributes' => (new AttributeAggregator())(...$families),
+                        'mapping' => $mapping,
+                        'attributes' => array_merge(
+                            (new AttributeAggregator())(...$families),
+                            (new FamilyVariantAxisAttributeAggregator())(...$familyVariants)
+                        ),
                     ],
                     $this->logger
                 ),
@@ -70,7 +75,7 @@ class ExtractProducts implements LoggerAwareInterface
                     $this->twig,
                     'product/02-prefill-axis-attributes.sql.twig',
                     [
-                        'mapping' => [],
+                        'mapping' => $mapping,
                         'variants' => $familyVariants,
                     ],
                     $this->logger
@@ -86,6 +91,10 @@ class ExtractProducts implements LoggerAwareInterface
                             '%actual%' => is_object($attribute) ? get_class($attribute) : gettype($attribute),
                         ]
                     ));
+                }
+
+                if ($attribute->attribute() instanceof ExNihilo) {
+                    continue;
                 }
 
                 try {
@@ -110,6 +119,7 @@ class ExtractProducts implements LoggerAwareInterface
                     'product/03-generate-intermediate-product-models.sql.twig',
                     [
                         'variants' => $familyVariants,
+                        'attributes' => (new FamilyVariantAxisAttributeAggregator())(...$familyVariants),
                     ],
                     $this->logger
                 )
@@ -144,7 +154,7 @@ class ExtractProducts implements LoggerAwareInterface
             (new SqlToCsv($this->pdo, $this->logger))
             (
                 $view->render([
-                    'attributes' => (new AttributeAggregator())(...$families),
+                    'attributes' => (new FamilyVariantAxisAttributeAggregator())(...$familyVariants),
                     'variants' => $familyVariants,
                 ]),
                 $productModelOutput

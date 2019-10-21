@@ -24,7 +24,7 @@ FROM (
 
     {%- set renderedAttributes = renderedAttributes|merge([renderedAttribute]) -%}
 {%- endfor -%}
-    {{ renderedAttributes|join(' UNION ') }}
+    {{ renderedAttributes|join('UNION\n') }}
 ) AS codes
 INNER JOIN eav_attribute AS attribute
     ON codes.code = attribute.attribute_code
@@ -38,3 +38,51 @@ LEFT JOIN eav_attribute_option_value AS opt_value_{{ locale }}
     ON opt_value_{{ locale }}.option_id=opt.option_id
     AND opt_value_{{ locale }}.store_id=0
 {% endfor -%}
+UNION
+SELECT
+    'enabled' AS code,
+    'status' AS attribute,
+    {% for locale in locales %}
+    'Enabled' AS "label-{{ locale }}",
+    {% endfor -%}
+    1 AS sort_order
+UNION
+SELECT
+    'disabled' AS code,
+    'status' AS attribute,
+    {% for locale in locales %}
+    'Disabled' AS "label-{{ locale }}",
+    {% endfor -%}
+    2 AS sort_order
+UNION
+SELECT
+    'not_visible' AS code,
+    'visibility' AS attribute,
+    {% for locale in locales %}
+    'Not visible' AS "label-{{ locale }}",
+    {% endfor -%}
+    1 AS sort_order
+UNION
+SELECT
+    'visible_in_catalog' AS code,
+    'visibility' AS attribute,
+    {% for locale in locales %}
+    'Visible in catalog' AS "label-{{ locale }}",
+    {% endfor -%}
+    2 AS sort_order
+UNION
+SELECT
+    'visible_in_search' AS code,
+    'visibility' AS attribute,
+    {% for locale in locales %}
+    'Visible in search' AS "label-{{ locale }}",
+    {% endfor -%}
+    3 AS sort_order
+UNION
+SELECT
+    'visible_in_catalog_and_search' AS code,
+    'visibility' AS attribute,
+    {% for locale in locales %}
+    'Visible in catalog and search' AS "label-{{ locale }}",
+    {% endfor -%}
+    4 AS sort_order
