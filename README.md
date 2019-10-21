@@ -33,28 +33,37 @@ Supported attribute types
 How to start
 ---
 
+### Install using Composer
+
 You will primarily need to install the tool in your environment:
 
-`composer create-project kiboko/bisous`
+`composer global require kiboko/bisous`
 
-This command will create a folder named `bisous/`, just go into this directory:
+Once you are done, open a terminal in your Akeneo environement.
+You will need to create an `.env` file, with the following environment variables properly set:
 
-`cd bisous`
+* `APP_DSN=mysql:host=mysql;dbname=magento`, Magento's database connection DTO, see [PDO MySQL Data Source Name](https://www.php.net/manual/en/ref.pdo-mysql.connection.php)
+* `APP_USERNAME=root`, Magento's MySQL user name
+* `APP_PASSWORD=password`, Magento's MySQL password
 
-Once you are there, you will need to create an `.env` file, with the following environment variables properly set:
+You will then need to create a `catalog.yml` file in this directory, describing your catalog structure. See [The `catalog.yml` file](#the-catalogyml-file)
 
-* `COMPOSER_AUTH={"github-oauth":{"github.com":"0123456789abcdef0123456789abcdef01234567"}}`, you will need to change the key by your github access token.
-* `COMPOSER_PROCESS_TIMEOUT=600`, some times you will need to set this timeout value to a higher value, depending on your network connection speed
-* `APP_DSN=mysql:host=mysql;dbname=magento`, see [PDO MySQL Data Source Name](https://www.php.net/manual/en/ref.pdo-mysql.connection.php)
-* `APP_USERNAME=root`, the MySQL user name
-* `APP_PASSWORD=password`, the MySQL password
+### Download the phar from github
 
-You will then need to create a `catalog.yml` file in this directory, describing your catalog structure.
+Go to [the latest version download page](https://github.com/kiboko-labs/bisous/releases/latest) and download the `bisous.phar` and `bisous.phar.pubkey` files.
+
+Alternatively you can install the files this way:
+
+```bash
+curl https://github.com/kiboko-labs/bisous/releases/download/v1.0.0/bisous.phar --output /usr/local/bin/bisous
+curl https://github.com/kiboko-labs/bisous/releases/download/v1.0.0/bisous.phar.pubkey --output /usr/local/bin/bisous.pubkey
+chmod 0755 /usr/local/bin/bisous
+```
 
 Run the tool
 ---
 
-Once properly installed, run `bin/console magento <akeneo directory>/src/InstallerBundle/Resources/fixtures/default`.
+Once properly installed, run `bisous magento <akeneo-directory>/src/InstallerBundle/Resources/fixtures/default`.
 
 This command will create fixtures file required by Akeneo, with your Magento catalog data and structure.
 
@@ -99,11 +108,25 @@ catalog:
       group: marketing
       scoped: true
       localised: true
+    - code: weight
+      type: metric
+      strategy: ad-hoc
+      group: logistics
+      metric:
+        family: Weight
+        unit: KILOGRAM
+    - code: image
+      type: image
+      strategy: ad-hoc
+      group: marketing
 ```
 
 ### The `groups:` section
 
-This section describes the attribute groups that will be created in Akeneo.
+This section describes the attribute groups that will be created in Akeneo, with the following fields:
+
+* `code` (string): it will contain the attribute group code in Akeneo
+* `label` (array): it contains a map of the labels of this group, having key as locale ISO code and value as actual label.
 
 Example:
 

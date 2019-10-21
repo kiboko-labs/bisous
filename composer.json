@@ -19,14 +19,13 @@
         "symfony/yaml": "4.3.*",
         "twig/twig": "^2.10"
     },
-    "require-dev": {
-    },
     "config": {
         "preferred-install": {
             "*": "dist"
         },
         "sort-packages": true
     },
+    "bin": ["bin/bisous"],
     "minimum-stability": "stable",
     "autoload": {
         "psr-4": {

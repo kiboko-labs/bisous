@@ -1,6 +1,6 @@
 {
     "chmod": "0755",
-    "main": "bin/console",
+    "main": "bin/bisous",
     "output": "bin/bisous.phar",
     "directories": ["src"],
     "finder": [
