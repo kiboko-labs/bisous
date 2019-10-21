@@ -1,0 +1,84 @@
+{
+    "composer/ca-bundle": {
+        "version": "1.2.4"
+    },
+    "padraic/humbug_get_contents": {
+        "version": "1.1.2"
+    },
+    "padraic/phar-updater": {
+        "version": "v1.0.6"
+    },
+    "psr/cache": {
+        "version": "1.0.1"
+    },
+    "psr/container": {
+        "version": "1.0.0"
+    },
+    "psr/log": {
+        "version": "1.1.0"
+    },
+    "symfony/cache": {
+        "version": "v4.3.3"
+    },
+    "symfony/cache-contracts": {
+        "version": "v1.1.5"
+    },
+    "symfony/config": {
+        "version": "v4.3.3"
+    },
+    "symfony/console": {
+        "version": "3.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "3.3",
+            "ref": "482d233eb8de91ebd042992077bbd5838858890c"
+        },
+        "files": [
+            "bin/console",
+            "config/bootstrap.php"
+        ]
+    },
+    "symfony/debug": {
+        "version": "v4.3.3"
+    },
+    "symfony/dotenv": {
+        "version": "v4.3.3"
+    },
+    "symfony/filesystem": {
+        "version": "v4.3.3"
+    },
+    "symfony/finder": {
+        "version": "v4.3.4"
+    },
+    "symfony/flex": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "dc3fc2e0334a4137c47cfd5a3ececc601fa61a0b"
+        },
+        "files": [
+            ".env"
+        ]
+    },
+    "symfony/polyfill-mbstring": {
+        "version": "v1.12.0"
+    },
+    "symfony/polyfill-php73": {
+        "version": "v1.12.0"
+    },
+    "symfony/serializer": {
+        "version": "v4.3.4"
+    },
+    "symfony/service-contracts": {
+        "version": "v1.1.5"
+    },
+    "symfony/var-exporter": {
+        "version": "v4.3.3"
+    },
+    "symfony/yaml": {
+        "version": "v4.3.3"
+    }
+}

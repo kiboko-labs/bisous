@@ -1,163 +1,228 @@
 Akeneo Fixtures Generation Toolbox
 ==================================
 
-This classes and templates toolbox helps generating CSV fixtues from Magento 1.9CE or 1.14EE catalog.
+This toolbox helps generating CSV fixtures consumed by Akeneo's InstallerBundle from Magento 1.9CE or 1.14EE catalog data.
 
-Example
--------
+This package is here to help you import your Magento catalog into a fresh new Akeneo instance. It is not aimed at synchronising on a daily basis Akeneo and Magento together. 
 
-```php
-#!/ur/bin/env php
-<?php
+Be aware that all your existing Akeneo product data will be reset by this tool, and lost.
 
-require __DIR__ . '/vendor/autoload.php';
+Supported attribute types 
+---
 
-use Kiboko\Bridge\Akeneo\Magento\Attribute;
-use Kiboko\Bridge\Akeneo\Magento\AttributeRenderer;
-use Kiboko\Bridge\Akeneo\Magento\FieldResolver;
-use Kiboko\Bridge\Akeneo\Magento\MagentoStore;
-use Kiboko\Bridge\Akeneo\Magento\Locale;
-use Kiboko\Bridge\Akeneo\Magento\Scope;
-use Kiboko\Bridge\Akeneo\Magento\Renderer;
-use Kiboko\Bridge\Akeneo\Magento\TwigExtension;
+| Magento Type | Akeneo Type        | Not Localizable, not Scopable | Localizable, not Scopable | Not Localizable, Scopable | Localizable, Scopable |
+| ------------ | ------------------ | --- | --- | --- | --- |
+| Gallery      | Asset Collection   | ❌ | ❌ | ❌ | ❌ |
+| Datetime     | Date               | ✅ | ❌ | ❌ | ✅ |
+| File         | File               | ❌ | ❌ | ❌ | ❌ |
+| SKU          | Identifier         | ✅ | ❌ | ❌ | ❌ |
+| Image        | Image              | ✅ | ❌ | ❌ | ✅ |
+| Decimal      | Metric             | ❌ | ❌ | ❌ | ❌ |
+| Multiselect  | Multi select       | ❌ | ❌ | ❌ | ❌ |
+| Select       | Simple select      | ✅ | ❌ | ✅ | ✅ |
+| Number       | Number             | ❌ | ❌ | ❌ | ❌ |
+| Price        | Price              | ❌ | ❌ | ❌ | ❌ |
+| Status       | Simple select      | ❌ | ❌ | ❌ | ✅ |
+| -            | Ref. multi select  | ❌ | ❌ | ❌ | ❌ |
+| -            | Ref. simple select | ❌ | ❌ | ❌ | ❌ |
+| Text         | Text area          | ✅ | ❌ | ❌ | ✅ |
+| Varchar      | Text               | ✅ | ❌ | ❌ | ✅ |
+| Visibility   | Simple select      | ❌ | ❌ | ❌ | ✅ |
+| YesNo        | Yes No             | ❌ | ❌ | ❌ | ❌ |
 
-$twig = new \Twig\Environment(
-    new Twig\Loader\FilesystemLoader([
-        __DIR__ . '/../templates'
-    ])
-);
-$twig->addExtension(new TwigExtension());
+How to start
+---
 
-$locales = [
-    $fr_FR = new Locale\Locale('fr_FR', new MagentoStore(1)),
-    $de_DE = new Locale\Locale('de_DE', new MagentoStore(2)),
-    $en_GB = new Locale\Locale('en_GB', new MagentoStore(2)),
-    $en_US = new Locale\Locale('en_US', new MagentoStore(4)),
-    $ja_JP = new Locale\Locale('ja_JP', new MagentoStore(5)),
-    $fr_CA = new Locale\Locale('fr_CA', new MagentoStore(8)),
-];
+You will primarily need to install the tool in your environment:
 
-$scopes = [
-    new Scope\Scope(
-        'europe',
-        new MagentoStore(1),
-        $fr_FR,
-        $de_DE,
-        $en_GB
-    ),
-    new Scope\Scope(
-        'america',
-        new MagentoStore(4),
-        $en_US,
-        $fr_CA,
-        new Locale\LocaleMapping($en_US, new MagentoStore(9)) // Additional locale mapping for Canada
-    ),
-    new Scope\Scope(
-        'asia',
-        new MagentoStore(5),
-        $ja_JP,
-        new Locale\LocaleMapping($en_GB, new MagentoStore(6)) // Additional locale mapping for Hong Kong
-    ),
-];
+`composer create-project kiboko/bisous`
 
-$globalized = new FieldResolver\Globalised();
-$localized = new FieldResolver\Localized(...$locales);
-$scoped = new FieldResolver\Scoped(...$scopes);
-$scopedAndLocalized = new FieldResolver\ScopedAndLocalized(...$scopes);
-$axis = new FieldResolver\VariantAxis();
+This command will create a folder named `bisous/`, just go into this directory:
 
-$renderer = new Renderer(
-    'initialize.sql.twig',
-    'finalize-product-parents.sql.twig',
-    ['configurable'],
-    // 1st level Product Models
-    new AttributeRenderer\Image(
-        new Attribute\AdHoc('image'),
-        $scoped
-    ),
-    new AttributeRenderer\Varchar(
-        new Attribute\AdHoc('name'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\Text(
-        new Attribute\AdHoc('description'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\Text(
-        new Attribute\AdHoc('short_description'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\Varchar(
-        new Attribute\AdHoc('meta_title'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\Text(
-        new Attribute\AdHoc('meta_description'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\SimpleSelect(
-        new Attribute\AdHoc('model'),
-        $scoped
-    ),
-    new AttributeRenderer\SimpleSelect(
-        new Attribute\AdHoc('manufacturer'),
-        $scoped
-    )
-);
+`cd bisous`
 
-$renderer(fopen('products_models1.sql', 'w'), $twig);
+Once you are there, you will need to create an `.env` file, with the following environment variables properly set:
 
-$renderer = new Renderer(
-    'initialize.sql.twig',
-    'finalize-product-children.sql.twig',
-    [],
-    // 2nd level Product Models
-    new AttributeRenderer\SimpleSelect(
-        new Attribute\AdHoc('color'),
-        $axis
-    )
-);
+* `COMPOSER_AUTH={"github-oauth":{"github.com":"0123456789abcdef0123456789abcdef01234567"}}`, you will need to change the key by your github access token.
+* `COMPOSER_PROCESS_TIMEOUT=600`, some times you will need to set this timeout value to a higher value, depending on your network connection speed
+* `APP_DSN=mysql:host=mysql;dbname=magento`, see [PDO MySQL Data Source Name](https://www.php.net/manual/en/ref.pdo-mysql.connection.php)
+* `APP_USERNAME=root`, the MySQL user name
+* `APP_PASSWORD=password`, the MySQL password
 
-$renderer(fopen('products_models2.sql', 'w'), $twig);
+You will then need to create a `catalog.yml` file in this directory, describing your catalog structure.
 
-$renderer = new Renderer(
-    'initialize.sql.twig',
-    'finalize-products.sql.twig',
-    ['simple', 'virtual'],
-    // Product & Product variants
-    new AttributeRenderer\Status(
-        new Attribute\AdHoc('status'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\Visibility(
-        new Attribute\AdHoc('visibility'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\SimpleSelect(
-        new Attribute\AdHoc('size'),
-        $axis
-    ),
-    new AttributeRenderer\Image(
-        new Attribute\Aliased('image', 'variation_image'),
-        $scoped
-    ),
-    new AttributeRenderer\Varchar(
-        new Attribute\Aliased('name', 'variation_name'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\Text(
-        new Attribute\Aliased('description', 'variation_description'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\Datetime(
-        new Attribute\AdHoc('news_from_date'),
-        $scopedAndLocalized
-    ),
-    new AttributeRenderer\Datetime(
-        new Attribute\AdHoc('news_to_date'),
-        $scopedAndLocalized
-    )
-);
+Run the tool
+---
 
-$renderer(fopen('products.sql', 'w'), $twig);
+Once properly installed, run `bin/console magento <akeneo directory>/src/InstallerBundle/Resources/fixtures/default`.
+
+This command will create fixtures file required by Akeneo, with your Magento catalog data and structure.
+
+The `catalog.yml` file
+---
+
+The `catalog.yml` file has a root node named `catalog:`, and 5 sub-nodes described in the following paragraphs:
+
+### The `attributes:` section
+
+This section is useful for describing your attribute list. It is an array of configuration fields, with the following fields:
+
+* `code` (string): Your attribute code, as seen in Akeneo
+* `type` (string): The attribute's type (valid values are `identifier`, `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `datetime`, `metric`, `image`)
+* `strategy` (string): The import strategy, following the next possible values:
+  * `ad-hoc`: the attribute will be created in Akeneo in the same way it was created in Magento
+  * `aliased`: the attrib ute will be created in Akeneo with another code than the one existing in Magento
+  * `ex-nihilo`: the attribute will be created in Akeneo without taking into account any attribute present in Magento
+* `group` (string): the attribute group in which the attribute will be assigned in Akeneo
+* `source` (string) (for strategy `aliased` only): the attribute code in Magento
+* `scoped` (bool): to specify it the attribute is scopable (only applies to types `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `datetime`, `metric`, `image`, will produce an error in Akeneo if used on a variant axis attribute) 
+* `localised` (bool): to specify it the attribute is localizable (only applies to types `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `datetime`, `metric`, `image`, will produce an error in Akeneo if used on a variant axis attribute) 
+
+Example:
+
+```yaml
+catalog:
+  attributes:
+    - code: sku
+      type: identifier
+      strategy: ad-hoc
+      group: general
+    - code: name
+      type: text
+      strategy: ad-hoc
+      group: marketing
+      scoped: true
+      localised: true
+    - code: variation_name
+      type: text
+      strategy: ex-nihilo
+      group: marketing
+      scoped: true
+      localised: true
+```
+
+### The `groups:` section
+
+This section describes the attribute groups that will be created in Akeneo.
+
+Example:
+
+```yaml
+catalog:
+  groups:
+    - code: general
+      label:
+        fr_FR: Général
+        en_GB: General
+    - code: marketing
+      label:
+        fr_FR: Général
+        en_GB: General
+```
+
+### The `families:` section
+
+Example:
+
+```yaml
+catalog:
+  families:
+    - code: jeans
+      attributes: [ name, description, short_description, meta_title, meta_description, status, visibility, image, variation_name, variation_image, variation_description, news_to_date, news_from_date, length, width, color, size ]
+      label: name
+      image: image
+      requirements:
+        - scope: america
+          attributes: [ name, description, image ]
+        - scope: europe
+          attributes: [ name, description, image ]
+        - scope: france
+          attributes: [ name, description, image ]
+        - scope: japan
+          attributes: [ name, description, image ]
+        - scope: china
+          attributes: [ name, description, image ]
+        - scope: asia
+          attributes: [ name, description, image ]
+        - scope: amazon
+          attributes: [ name, description, image ]
+        - scope: ebay
+          attributes: [ name, description, image ]
+      variations:
+        - code: jeans_by_size_and_color
+          skuPattern: '{{ parent }}:{{ length }}:{{ width }}'
+          level-1:
+            axis: [ length, width ]
+            attributes: [ variation_name, variation_image, variation_description, news_from_date, news_to_date ]
+          level-2:
+            axis: [ color ]
+            attributes: [ sku, status, visibility ]
+        - code: jeans_by_size
+          level-1:
+            axis: [ size ]
+            attributes: [ sku, status, visibility, variation_name, variation_image, variation_description, news_from_date, news_to_date ]
+
+```
+
+### The `locales:` section
+
+Example:
+
+```yaml
+catalog:
+  locales:
+    - code: fr_FR
+      currency: EUR
+      store: 15
+    - code: en_GB
+      currency: GBP
+      store: 21
+```
+
+### The `scopes:` section
+
+Example:
+
+```yaml
+catalog:
+  scopes:
+    - code: europe
+      store: 1
+      locales:
+        - code: fr_FR
+          store: 1
+        - code: de_DE
+          store: 4
+        - code: es_ES
+          store: 3
+        - code: it_IT
+          store: 2
+    - code: america
+      store: 5
+      locales:
+        - code: en_US
+          store: 5
+        - code: en_CA
+          store: 8
+        - code: fr_CA
+          store: 6
+```
+
+### The `codes-mapping:` section
+
+Example:
+
+```yaml
+catalog:
+  codes-mapping:
+    - from: '"'
+      to: 'inches'
+    - from: 'â'
+      to: 'a'
+    - from: 'é'
+      to: 'e'
+    - from: 'è'
+      to: 'e'
+    - from: '/'
+      to: '_'
 ```

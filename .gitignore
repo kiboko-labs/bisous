@@ -1,0 +1,4 @@
+/.env
+/bin/bisous.phar
+/bisous-phar-private.pem
+/bisous-phar-private-nopassphrase.pem

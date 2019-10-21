@@ -1,18 +1,51 @@
 version: '2'
 
 services:
-  cli:
+  blackfire:
+    image: blackfire/blackfire
+    environment:
+      - BLACKFIRE_SERVER_ID
+      - BLACKFIRE_SERVER_TOKEN
+
+  sh:
     build:
-      context: .docker/php@7.2
+      context: ./.docker/php@7.2/cli
+    user: docker:docker
     volumes:
-      - ./.docker/php@7.2/config/memory.ini:/usr/local/etc/php/conf.d/memory.ini:ro
-      - ./:/app
-  composer:
-    extends:
-      service: cli
-    volumes:
+      - $HOME/.ssh:/opt/docker/.ssh:cached
+      - ./:/var/www/html
       - composer:/opt/docker/.composer/:cached
-    entrypoint: [ 'composer' ]
+    environment:
+      - COMPOSER_AUTH
+      - COMPOSER_PROCESS_TIMEOUT
+    command: [ "sleep", "31536000" ]
+    restart: "always"
+
+  sh-xdebug:
+    build:
+      context: ./.docker/php@7.2/cli
+    user: docker:docker
+    volumes:
+      - $HOME/.ssh:/opt/docker/.ssh:cached
+      - ./:/var/www/html
+      - composer:/opt/docker/.composer/:cached
+    environment:
+      - COMPOSER_AUTH
+      - COMPOSER_PROCESS_TIMEOUT
+    command: [ "sleep", "31536000" ]
+    restart: "always"
+
+  mysql:
+    image: 'mysql:5.7'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_USER: 'magento'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_DATABASE: 'magento'
+    ports:
+      - 13006:3306
+    volumes:
+      - ./dump-recommerce-20190506.sql:/docker-entrypoint-initdb.d/dump-recommerce-20190506.sql:ro
 
 volumes:
   composer:

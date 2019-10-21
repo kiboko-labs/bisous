@@ -1,0 +1,27 @@
+SELECT
+{% for attribute in attributes %}
+    {% for field in attribute.fields %}
+    {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}`,
+    {% endfor %}
+{% endfor %}
+    product.sku AS sku,
+    COALESCE(hierarchy.child, hierarchy.parent) AS parent
+FROM tmp_sku AS product
+{% for attribute in attributes %}
+    {% if (attribute.attribute ~ '') is same as('ex-nihilo') %}
+LEFT JOIN (
+    SELECT
+    {% for field in attribute.fields %}
+        NULL AS `{{ as_field_column(field) }}`,
+    {% endfor %}
+        NULL AS placeholder
+) AS {{ as_attribute_alias(attribute.attribute) }}
+    ON {{ as_attribute_alias(attribute.attribute) }}.placeholder IS NULL
+    {% else %}
+LEFT JOIN {{ as_attribute_table(attribute.attribute) }} AS {{ as_attribute_alias(attribute.attribute) }}
+    ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
+    {% endif %}
+{% endfor %}
+LEFT JOIN tmp_hierarchy as hierarchy
+    ON hierarchy.variant=product.sku
+WHERE product.type_id IN ('simple', 'virtual');
