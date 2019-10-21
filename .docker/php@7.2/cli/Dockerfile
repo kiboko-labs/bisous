@@ -62,4 +62,9 @@ RUN apk del \
         sqlite-libs \
     && rm -rf /tmp/* /var/cache/apk/*
 
+RUN pwd && curl -LSs https://box-project.github.io/box2/installer.php | php \
+    && mv box.phar /usr/local/bin/box \
+    && chmod 0755 /usr/local/bin/box \
+    && echo "phar.readonly=0" >> /usr/local/etc/php/conf.d/phar.ini
+
 WORKDIR /var/www/html

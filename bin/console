@@ -1,7 +1,9 @@
 #!/usr/bin/env php
 <?php
 
+use App\Infrastructure\Command\CommandBus;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\CommandLoader\FactoryCommandLoader;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Logger\ConsoleLogger;
@@ -50,20 +52,23 @@ $factory = new class($output) {
         $this->logger = new ConsoleLogger($output);
     }
 
-    public function __invoke(string $className)
+    public function __invoke(Application $application, string $className)
     {
-        return function () use ($className) {
-            return new $className(null, $this->logger);
+        return function () use ($className, $application) {
+            /** @var Command $command */
+            $command = new $className(null, $this->logger);
+            $command->setApplication($application);
+            return $command;
         };
     }
 };
 
 $application = new Application('Bisous', '1.0.0');
 $application->setCommandLoader(new FactoryCommandLoader([
-    'init' => $factory(\App\Infrastructure\Console\Command\InitializeCommand::class),
-    'magento' => $factory(\App\Infrastructure\Console\Command\MagentoCommand::class),
-    'test' => $factory(\App\Infrastructure\Console\Command\TestCommand::class),
-//    'categories' => function(){},
-    'products' => $factory(\App\Infrastructure\Console\Command\ProductCommand::class),
+    'init' => $factory($application, \App\Infrastructure\Console\Command\InitializeCommand::class),
+    'magento' => $factory($application, \App\Infrastructure\Console\Command\MagentoCommand::class),
+    'self-update' => $factory($application, \App\Infrastructure\Console\Command\SelfUpdateCommand::class),
+    'test' => $factory($application, \App\Infrastructure\Console\Command\TestCommand::class),
+    'products' => $factory($application, \App\Infrastructure\Console\Command\ProductCommand::class),
 ]));
 $application->run($input, $output);
