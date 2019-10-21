@@ -1,5 +1,5 @@
 {
-    "name": "kiboko/akeneo-initialize-from-magento",
+    "name": "kiboko/bisous",
     "type": "project",
     "require": {
         "php": "^7.2",

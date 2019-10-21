@@ -61,7 +61,7 @@ $factory = new class($output) {
 $application = new Application('Bisous', '1.0.0');
 $application->setCommandLoader(new FactoryCommandLoader([
     'init' => $factory(\App\Infrastructure\Console\Command\InitializeCommand::class),
-    'go' => $factory(\App\Infrastructure\Console\Command\GoCommand::class),
+    'magento' => $factory(\App\Infrastructure\Console\Command\MagentoCommand::class),
     'test' => $factory(\App\Infrastructure\Console\Command\TestCommand::class),
 //    'categories' => function(){},
     'products' => $factory(\App\Infrastructure\Console\Command\ProductCommand::class),
