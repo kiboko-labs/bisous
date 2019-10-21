@@ -42,7 +42,7 @@ You will primarily need to install the tool in your environment:
 Once you are done, open a terminal in your Akeneo environement.
 You will need to create an `.env` file, with the following environment variables properly set:
 
-* `APP_DSN=mysql:host=mysql;dbname=magento`, Magento's database connection DTO, see [PDO MySQL Data Source Name](https://www.php.net/manual/en/ref.pdo-mysql.connection.php)
+* `APP_DSN=mysql:host=mysql;dbname=magento`, Magento's database connection DSN, see [PDO MySQL Data Source Name](https://www.php.net/manual/en/ref.pdo-mysql.connection.php)
 * `APP_USERNAME=root`, Magento's MySQL user name
 * `APP_PASSWORD=password`, Magento's MySQL password
 
