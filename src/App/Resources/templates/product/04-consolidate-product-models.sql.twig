@@ -6,7 +6,6 @@ SELECT
     {% endfor %}
 {% endfor %}
     hierarchy.parent AS code,
-    hierarchy.family AS family,
     hierarchy.family_variant AS family_variant,
     NULL AS parent
 FROM tmp_sku AS product
@@ -33,7 +32,6 @@ SELECT
     {% endfor %}
 {% endfor %}
     hierarchy.child AS code,
-    hierarchy.family AS family,
     hierarchy.family_variant AS family_variant,
     hierarchy.parent AS parent
 FROM tmp_sku AS product

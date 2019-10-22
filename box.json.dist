@@ -1,7 +1,7 @@
 {
     "chmod": "0755",
     "main": "bin/bisous",
-    "output": "bin/bisous.phar",
+    "output": "build/bisous.phar",
     "directories": ["src"],
     "finder": [
         {

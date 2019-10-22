@@ -1,5 +1,5 @@
 /.env
-/bin/bisous.phar
+/build/bisous.phar
+/build/bisous.phar.pubkey
 /bisous-phar-private.pem
 /bisous-phar-private-nopassphrase.pem
-/bin/bisous.phar.pubkey
