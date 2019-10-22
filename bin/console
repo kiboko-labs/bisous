@@ -63,7 +63,7 @@ $factory = new class($output) {
     }
 };
 
-$application = new Application('Bisous', '1.0.0');
+$application = new Application('Bisous', '1.0.1');
 $application->setCommandLoader(new FactoryCommandLoader([
     'init' => $factory($application, \App\Infrastructure\Console\Command\InitializeCommand::class),
     'magento' => $factory($application, \App\Infrastructure\Console\Command\MagentoCommand::class),
