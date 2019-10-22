@@ -8,8 +8,10 @@ CREATE TEMPORARY TABLE tmp_hierarchy (
     `{{ as_field_column(field) }}__short` VARCHAR(255) NULL,
         {% endfor -%}
     {% endfor %}
+    family VARCHAR(255) NOT NULL,
     family_variant VARCHAR(255) NOT NULL,
     PRIMARY KEY (parent, child, variant),
+    INDEX (family),
     INDEX (family_variant),
     INDEX (parent),
     INDEX (child),
@@ -22,6 +24,7 @@ CREATE TEMPORARY TABLE tmp_hierarchy (
     {% set request %}
 SELECT
     product.sku AS parent,
+    '{{ variant.family.code }}' AS family,
     '{{ variant.code }}' AS family_variant,
     {{ as_product_hierarchy_sku_field('product.sku', variant) }} AS child,
     {% for attribute in variant.axis(1).attributes -%}
@@ -36,18 +39,18 @@ INNER JOIN catalog_product_super_link AS link
     ON link.parent_id=product.entity_id
 INNER JOIN catalog_product_entity AS child
     ON child.entity_id=link.product_id
-{% for attribute in variant.axis(1).attributes %}
+    {% for attribute in variant.axis(1).attributes %}
 INNER JOIN {{ as_attribute_table(attribute.attribute) }} AS {{ as_attribute_alias(attribute.attribute) }}
     ON {{ as_attribute_alias(attribute.attribute) }}.entity_id = child.entity_id
-{% endfor %}
+    {% endfor %}
 WHERE product.sku IS NOT NULL
   AND child.sku IS NOT NULL
   AND product.type_id IN ('configurable')
-{% for attribute in variant.axis(1).attributes -%}
-    {% for field in attribute.fields() %}
+    {% for attribute in variant.axis(1).attributes -%}
+        {% for field in attribute.fields() %}
   AND {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}` IS NOT NULL
+        {% endfor -%}
     {% endfor -%}
-{% endfor -%}
     {% endset %}
 
     {% set variantRequests = variantRequests|merge([request]) %}

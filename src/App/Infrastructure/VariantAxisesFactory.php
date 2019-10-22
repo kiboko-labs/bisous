@@ -4,6 +4,7 @@ namespace App\Infrastructure;
 
 use App\Domain\Magento\Attribute;
 use App\Domain\Magento\AttributeRenderer;
+use App\Domain\Magento\Family;
 use App\Domain\Magento\FamilyVariant;
 use App\Domain\Magento\FamilyVariantAxis;
 
@@ -24,10 +25,12 @@ class VariantAxisesFactory
 
     private function walk(array $config): \Iterator
     {
-        foreach ($config['families'] as $family) {
-            foreach ($family['variations'] as $variation) {
+        foreach ($config['families'] as $familyConfig) {
+            $family = new Family($familyConfig['code'], ...$this->extractAttributes($familyConfig['attributes']));
+            foreach ($familyConfig['variations'] as $variation) {
                 if (isset($variation['level_2']['axis'])) {
                     yield new FamilyVariant(
+                        $family,
                         $variation['code'],
                         $variation['skuPattern'],
                         new FamilyVariantAxis(...$this->extractAttributes($variation['level_1']['axis'])),
@@ -35,6 +38,7 @@ class VariantAxisesFactory
                     );
                 } else {
                     yield new FamilyVariant(
+                        $family,
                         $variation['code'],
                         null,
                         new FamilyVariantAxis(...$this->extractAttributes($variation['level_1']['axis']))

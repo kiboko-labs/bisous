@@ -5,6 +5,7 @@ SELECT
     {% endfor %}
 {% endfor %}
     product.sku AS sku,
+    hierarchy.family AS family,
     COALESCE(hierarchy.child, hierarchy.parent) AS parent
 FROM tmp_sku AS product
 {% for attribute in attributes %}

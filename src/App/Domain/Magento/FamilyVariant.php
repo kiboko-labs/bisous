@@ -4,6 +4,8 @@ namespace App\Domain\Magento;
 
 class FamilyVariant
 {
+    /** @var Family */
+    public $family;
     /** @var string */
     public $code;
     /** @var string */
@@ -11,12 +13,13 @@ class FamilyVariant
     /** @var FamilyVariantAxis[] */
     private $axises;
 
-    public function __construct(string $code, ?string $skuTemplate, FamilyVariantAxis ...$axises)
+    public function __construct(Family $family, string $code, ?string $skuTemplate, FamilyVariantAxis ...$axises)
     {
         if (count($axises) > 2) {
             throw new \OverflowException('Could not initialise a family variant with more than 2 axis levels.');
         }
 
+        $this->family = $family;
         $this->code = $code;
         $this->skuTemplate = $skuTemplate;
         $this->axises = $axises;

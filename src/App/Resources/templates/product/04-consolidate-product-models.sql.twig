@@ -6,6 +6,7 @@ SELECT
     {% endfor %}
 {% endfor %}
     hierarchy.parent AS code,
+    hierarchy.family AS family,
     hierarchy.family_variant AS family_variant,
     NULL AS parent
 FROM tmp_sku AS product
@@ -14,9 +15,12 @@ LEFT JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias
     ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
 {% endfor %}
 INNER JOIN (
-    SELECT DISTINCT hierarchy.parent, hierarchy.family_variant
+    SELECT DISTINCT hierarchy.parent, hierarchy.family, hierarchy.family_variant
     FROM tmp_hierarchy as hierarchy
-    GROUP BY hierarchy.parent, hierarchy.family_variant
+    GROUP BY
+        hierarchy.parent,
+        hierarchy.family,
+        hierarchy.family_variant
 ) AS hierarchy
     ON hierarchy.parent=product.sku
 WHERE product.type_id IN ('configurable');
@@ -29,6 +33,7 @@ SELECT
     {% endfor %}
 {% endfor %}
     hierarchy.child AS code,
+    hierarchy.family AS family,
     hierarchy.family_variant AS family_variant,
     hierarchy.parent AS parent
 FROM tmp_sku AS product
@@ -44,6 +49,7 @@ INNER JOIN (
         {% endfor %}
     {% endfor %}
         MAX(hierarchy.parent) AS parent,
+        MAX(hierarchy.family) AS family,
         MAX(hierarchy.family_variant) AS family_variant,
         hierarchy.child
     FROM tmp_hierarchy as hierarchy
@@ -54,6 +60,7 @@ INNER JOIN (
         {% endfor %}
     {% endfor %}
         hierarchy.child,
+        hierarchy.family,
         hierarchy.family_variant
 ) AS hierarchy
     ON hierarchy.parent=product.sku
