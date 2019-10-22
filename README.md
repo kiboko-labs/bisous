@@ -18,7 +18,7 @@ Supported attribute types
 | SKU          | Identifier         | ✅ | ❌ | ❌ | ❌ |
 | Image        | Image              | ✅ | ❌ | ❌ | ✅ |
 | Decimal      | Metric             | ❌ | ❌ | ❌ | ❌ |
-| Multiselect  | Multi select       | ❌ | ❌ | ❌ | ❌ |
+| Multiselect  | Multi select       | ✅ | ❌ | ❌ | ✅ |
 | Select       | Simple select      | ✅ | ❌ | ✅ | ✅ |
 | Number       | Number             | ❌ | ❌ | ❌ | ❌ |
 | Price        | Price              | ❌ | ❌ | ❌ | ❌ |
@@ -77,15 +77,15 @@ The `catalog.yml` file has a root node named `catalog:`, and 5 sub-nodes describ
 This section is useful for describing your attribute list. It is an array of configuration fields, with the following fields:
 
 * `code` (string): Your attribute code, as seen in Akeneo
-* `type` (string): The attribute's type (valid values are `identifier`, `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `datetime`, `metric`, `image`)
+* `type` (string): The attribute's type (valid values are `identifier`, `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `multiple-select`, `datetime`, `metric`, `image`)
 * `strategy` (string): The import strategy, following the next possible values:
   * `ad-hoc`: the attribute will be created in Akeneo in the same way it was created in Magento
   * `aliased`: the attrib ute will be created in Akeneo with another code than the one existing in Magento
   * `ex-nihilo`: the attribute will be created in Akeneo without taking into account any attribute present in Magento
 * `group` (string): the attribute group in which the attribute will be assigned in Akeneo
 * `source` (string) (for strategy `aliased` only): the attribute code in Magento
-* `scoped` (bool): to specify it the attribute is scopable (only applies to types `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `datetime`, `metric`, `image`, will produce an error in Akeneo if used on a variant axis attribute) 
-* `localised` (bool): to specify it the attribute is localizable (only applies to types `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `datetime`, `metric`, `image`, will produce an error in Akeneo if used on a variant axis attribute) 
+* `scoped` (bool): to specify it the attribute is scopable (only applies to types `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `multiple-select`, `datetime`, `metric`, `image`, will produce an error in Akeneo if used on a variant axis attribute) 
+* `localised` (bool): to specify it the attribute is localizable (only applies to types `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `multiple-select`, `datetime`, `metric`, `image`, will produce an error in Akeneo if used on a variant axis attribute) 
 
 Example:
 

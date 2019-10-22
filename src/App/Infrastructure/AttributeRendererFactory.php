@@ -92,6 +92,19 @@ class AttributeRendererFactory
                     );
                     break;
 
+                case 'multiple-select':
+                    yield new AttributeRenderer\MultipleSelect(
+                        $attribute,
+                        $this->buildFieldResolver(
+                            false,
+                            $attributeSpec['scoped'] ?? false,
+                            $attributeSpec['localised'] ?? false,
+                            $scopes,
+                            $locales
+                        )
+                    );
+                    break;
+
                 case 'image':
                     yield new AttributeRenderer\Image(
                         $attribute,

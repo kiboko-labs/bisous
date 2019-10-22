@@ -31,7 +31,7 @@ class Configuration implements ConfigurationInterface
                                     'text',
                                     'rich-text',
                                     'simple-select',
-                                    'multi-select',
+                                    'multiple-select',
                                     'metric',
                                     'image',
                                     'status',
