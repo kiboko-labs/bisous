@@ -6,6 +6,7 @@ use App\Domain\Magento\Attribute;
 use App\Domain\Magento\AttributeRenderer;
 use App\Domain\Magento\FieldResolver;
 use App\Domain\Magento\VariantAxis;
+use Twig\Environment;
 use Twig\TemplateWrapper;
 
 class MultipleSelect implements AttributeRenderer
@@ -43,9 +44,9 @@ class MultipleSelect implements AttributeRenderer
         ]);
     }
 
-    public function template(): string
+    public function template(Environment $twig): TemplateWrapper
     {
-        return $this->fieldResolver->template($this);
+        return $twig->load($this->fieldResolver->template($this));
     }
 
     public function attribute(): Attribute

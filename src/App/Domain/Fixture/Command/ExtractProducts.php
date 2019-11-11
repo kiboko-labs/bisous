@@ -8,6 +8,7 @@ use App\Domain\Magento\AttributeRenderer;
 use App\Domain\Magento\Family;
 use App\Domain\Magento\FamilyVariant;
 use App\Infrastructure\AttributeAggregator;
+use App\Infrastructure\Command\AttributeRendererCommand;
 use App\Infrastructure\FamilyVariantAxisAttributeAggregator;
 use App\Infrastructure\Command\CommandBus;
 use App\Infrastructure\Command\TwigCommand;
@@ -99,12 +100,9 @@ class ExtractProducts implements LoggerAwareInterface
 
                 try {
                     $bus->add(
-                        new TwigCommand(
+                        new AttributeRendererCommand(
                             $this->twig,
-                            $attribute->template(),
-                            [
-                                'renderer' => $attribute,
-                            ],
+                            $attribute,
                             $this->logger
                         )
                     );

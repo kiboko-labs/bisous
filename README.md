@@ -13,10 +13,11 @@ Supported attribute types
 | Magento Type | Akeneo Type        | Not Localizable, not Scopable | Localizable, not Scopable | Not Localizable, Scopable | Localizable, Scopable |
 | ------------ | ------------------ | --- | --- | --- | --- |
 | Gallery      | Asset Collection   | ❌ | ❌ | ❌ | ❌ |
-| Datetime     | Date               | ✅ | ❌ | ❌ | ✅ |
+| Gallery Item | Image              | ✅ | ✅ | ✅ | ✅ |
+| Datetime     | Date               | ✅ | ✅ | ✅ | ✅ |
 | File         | File               | ❌ | ❌ | ❌ | ❌ |
 | SKU          | Identifier         | ✅ | ❌ | ❌ | ❌ |
-| Image        | Image              | ✅ | ❌ | ❌ | ✅ |
+| Image        | Image              | ✅ | ✅ | ✅ | ✅ |
 | Decimal      | Metric             | ❌ | ❌ | ❌ | ❌ |
 | Multiselect  | Multi select       | ✅ | ❌ | ❌ | ✅ |
 | Select       | Simple select      | ✅ | ❌ | ✅ | ✅ |

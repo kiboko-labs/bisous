@@ -80,7 +80,7 @@ class MagentoCommand extends Command
         $this->addArgument(
             'output',
             InputArgument::OPTIONAL,
-            'Specify the output file, defaults to CWD.'
+            'Specify the output path, defaults to CWD.'
         );
     }
 
@@ -167,9 +167,8 @@ class MagentoCommand extends Command
             return false;
         });
 
-        $attributeRenderersFactory = new AttributeRendererFactory();
         /** @var AttributeRenderer[] $attributeRenderers */
-        $attributeRenderers = $attributeRenderersFactory(
+        $attributeRenderers = (new AttributeRendererFactory())(
             $attributes,
             $axisAttributes,
             $scopes,

@@ -118,6 +118,20 @@ class AttributeRendererFactory
                     );
                     break;
 
+                case 'image-gallery-item':
+                    yield new AttributeRenderer\ImageGalleryItem(
+                        $attribute,
+                        $this->buildFieldResolver(
+                            false,
+                            $attributeSpec['scoped'] ?? false,
+                            $attributeSpec['localised'] ?? false,
+                            $scopes,
+                            $locales
+                        ),
+                        $attributeSpec['position'] ?? 1
+                    );
+                    break;
+
                 case 'status':
                     yield new AttributeRenderer\Status(
                         $attribute,

@@ -3,7 +3,7 @@ CREATE TEMPORARY TABLE tmp_hierarchy (
     child VARCHAR(255) NOT NULL,
     variant VARCHAR(255) NOT NULL,
     {% for attribute in attributes %}
-        {%- for field in renderer.fields -%}
+        {%- for field in fields -%}
     `{{ as_field_column(field) }}` VARCHAR(255) NULL,
     `{{ as_field_column(field) }}__short` VARCHAR(255) NULL,
         {% endfor -%}

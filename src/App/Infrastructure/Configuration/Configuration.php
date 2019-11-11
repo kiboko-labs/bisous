@@ -34,6 +34,7 @@ class Configuration implements ConfigurationInterface
                                     'multiple-select',
                                     'metric',
                                     'image',
+                                    'image-gallery-item',
                                     'status',
                                     'visibility',
                                     'datetime',
@@ -41,6 +42,7 @@ class Configuration implements ConfigurationInterface
                             ->end()
                             ->scalarNode('strategy')->isRequired()->end()
                             ->scalarNode('source')->end()
+                            ->scalarNode('position')->end()
                             ->scalarNode('group')->defaultValue('default')->end()
                             ->arrayNode('metric')
                                 ->children()

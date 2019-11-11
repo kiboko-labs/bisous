@@ -6,6 +6,8 @@ use App\Domain\Magento\Attribute;
 use App\Domain\Magento\AttributeRenderer;
 use App\Domain\Magento\FieldResolver;
 use App\Domain\Magento\VariantAxis;
+use Twig\Environment;
+use Twig\Template;
 use Twig\TemplateWrapper;
 
 class Identifier implements AttributeRenderer
@@ -44,9 +46,13 @@ class Identifier implements AttributeRenderer
         return '';
     }
 
-    public function template(): string
+    public function template(Environment $twig): TemplateWrapper
     {
-        throw new \RuntimeException('This renderer has no template.');
+        return new TemplateWrapper($twig, new class($twig) extends Template {
+            public function getTemplateName(){return '<none>';}
+            public function getDebugInfo(){return [];}
+            public function doDisplay(array $context, array $blocks = []){return '';}
+        });
     }
 
     public function attribute(): Attribute

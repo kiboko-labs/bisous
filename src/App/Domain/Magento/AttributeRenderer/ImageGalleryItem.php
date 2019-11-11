@@ -9,7 +9,7 @@ use App\Domain\Magento\VariantAxis;
 use Twig\Environment;
 use Twig\TemplateWrapper;
 
-class SimpleSelect implements AttributeRenderer
+class ImageGalleryItem implements AttributeRenderer
 {
     use ScopingAwareTrait;
     use LocalizationAwareTrait;
@@ -18,18 +18,27 @@ class SimpleSelect implements AttributeRenderer
     private $attribute;
     /** @var FieldResolver */
     private $fieldResolver;
+    /** @var int */
+    private $position;
 
     public function __construct(
         Attribute $attribute,
-        FieldResolver $fieldResolver
+        FieldResolver $fieldResolver,
+        int $position
     ) {
         $this->attribute = $attribute;
+
+        if ($fieldResolver instanceof VariantAxis) {
+            throw new \TypeError('Could not accept a VariantAxis renderer in am Image attribute.');
+        }
+
         $this->fieldResolver = $fieldResolver;
+        $this->position = $position;
     }
 
     public function __toString()
     {
-        return 'simple-select';
+        return 'image-gallery-item';
     }
 
     public function __invoke(TemplateWrapper $template): string
@@ -41,6 +50,7 @@ class SimpleSelect implements AttributeRenderer
         return $template->render([
             'attribute' => $this->attribute,
             'fields' => $this->fields(),
+            'position' => $this->position
         ]);
     }
 
@@ -61,6 +71,6 @@ class SimpleSelect implements AttributeRenderer
 
     public function isAxis(): bool
     {
-        return $this->fieldResolver instanceof VariantAxis;
+        return false;
     }
 }

@@ -68,7 +68,7 @@ FROM (
             'pim_catalog_simpleselect' AS type,
         {%- elseif (attribute ~ '') is same as('multiple-select') -%}
             'pim_catalog_multiselect' AS type,
-        {%- elseif (attribute ~ '') is same as('image') -%}
+        {%- elseif (attribute ~ '') is same as('image') or (attribute ~ '') is same as('image-gallery-item') -%}
             'pim_catalog_image' AS type,
         {%- elseif (attribute ~ '') is same as('metric') -%}
            'pim_catalog_metric' AS type,

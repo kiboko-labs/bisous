@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Command;
 
+use App\Domain\Magento\AttributeRenderer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -11,26 +12,22 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class TwigCommand implements CommandInterface, LoggerAwareInterface
+class AttributeRendererCommand implements CommandInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
     /** @var Environment */
     private $twig;
-    /** @var string */
-    private $twigTemplate;
-    /** @var array */
-    private $twigContext;
+    /** @var AttributeRenderer */
+    private $renderer;
 
     public function __construct(
         Environment $twig,
-        string $twigTemplate,
-        array $twigContext = [],
+        AttributeRenderer $renderer,
         LoggerInterface $logger = null
     ) {
         $this->twig = $twig;
-        $this->twigTemplate = $twigTemplate;
-        $this->twigContext = $twigContext;
+        $this->renderer = $renderer;
         $this->logger = $logger ?? new NullLogger();
     }
 
@@ -38,11 +35,11 @@ class TwigCommand implements CommandInterface, LoggerAwareInterface
     {
         try {
             $this->logger->debug('Compiling template {template}.', [
-                'template' => $this->twigTemplate
+                'template' => $this->renderer->template($this->twig)->getTemplateName()
             ]);
 
-            $view = $this->twig->load($this->twigTemplate);
-            $queries = explode(';', $view->render($this->twigContext));
+            $view = $this->renderer->template($this->twig);
+            $queries = explode(';', ($this->renderer)($view));
 
             foreach ($queries as $query) {
                 $query = trim($query);

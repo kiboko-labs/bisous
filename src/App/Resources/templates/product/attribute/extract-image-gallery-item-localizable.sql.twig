@@ -1,0 +1,67 @@
+CREATE TEMPORARY TABLE {{ as_attribute_table(attribute) }} (
+    sku VARCHAR(128) NOT NULL,
+    entity_id INTEGER NOT NULL,
+    type_id VARCHAR(32) NOT NULL,
+    attribute_id INTEGER NOT NULL,
+    {%- for field in fields -%}
+    `{{ as_field_column(field) }}` VARCHAR(255) NULL,
+    {% endfor -%}
+    PRIMARY KEY (entity_id, attribute_id),
+    UNIQUE INDEX (entity_id, attribute_id),
+    INDEX (sku)
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SELECT
+    {% for field in fields -%}
+    CONCAT('media/', TRIM(LEADING '/' FROM COALESCE({{ as_field_alias(field) }}.value, {{ as_default_alias() }}.value))) AS `{{ as_field_column(field) }}`,
+    {% endfor -%}
+    attribute.attribute_id,
+    product.*
+FROM tmp_sku AS product
+INNER JOIN eav_attribute AS attribute
+    ON attribute.attribute_code='{{ attribute.source }}' AND attribute.entity_type_id=4
+INNER JOIN (
+    SELECT
+        MAX(gallery.value) AS value,
+        gallery.entity_id,
+        gallery.attribute_id,
+        CASE
+            WHEN gallery_value.position = 0
+                THEN 100
+            ELSE gallery_value.position
+        END AS position
+    FROM catalog_product_entity_media_gallery AS gallery
+    INNER JOIN catalog_product_entity_media_gallery_value AS gallery_value
+        ON gallery_value.value_id=gallery.value_id
+        AND gallery_value.store_id=0
+    WHERE gallery_value.position={{ position|number_format }}
+    GROUP BY
+        gallery.entity_id,
+        gallery.attribute_id,
+        gallery_value.position
+) AS {{ as_default_alias() }}
+    ON {{ as_default_alias() }}.entity_id=product.entity_id
+    AND {{ as_default_alias() }}.attribute_id=attribute.attribute_id
+{% for field in fields -%}
+LEFT JOIN (
+    SELECT
+        MAX(gallery.value) AS value,
+        gallery.entity_id,
+        gallery.attribute_id,
+        CASE
+            WHEN gallery_value.position = 0
+                THEN 100
+            ELSE gallery_value.position
+        END AS position
+    FROM catalog_product_entity_media_gallery AS gallery
+    INNER JOIN catalog_product_entity_media_gallery_value AS gallery_value
+        ON gallery_value.value_id=gallery.value_id
+        AND gallery_value.store_id={{ field.store.id }}
+    WHERE gallery_value.position={{ position|number_format }}
+    GROUP BY
+        gallery.entity_id,
+        gallery.attribute_id,
+        gallery_value.position
+) AS {{ as_field_alias(field) }}
+    ON {{ as_field_alias(field) }}.entity_id=product.entity_id
+    AND {{ as_field_alias(field) }}.attribute_id=attribute.attribute_id
+{% endfor -%};

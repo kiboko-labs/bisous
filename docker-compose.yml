@@ -1,4 +1,4 @@
-version: '2'
+version: '2.2'
 
 services:
   blackfire:
@@ -23,7 +23,7 @@ services:
 
   sh-xdebug:
     build:
-      context: ./.docker/php@7.2/cli
+      context: ./.docker/php@7.2/cli-xdebug
     user: docker:docker
     volumes:
       - $HOME/.ssh:/opt/docker/.ssh:cached
@@ -44,8 +44,6 @@ services:
       MYSQL_DATABASE: 'magento'
     ports:
       - 13006:3306
-    volumes:
-      - ./dump-recommerce-20190506.sql:/docker-entrypoint-initdb.d/dump-recommerce-20190506.sql:ro
 
 volumes:
   composer:
