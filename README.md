@@ -71,16 +71,16 @@ This command will create fixtures file required by Akeneo, with your Magento cat
 Available commands
 ---
 
-### Configuration related commands
+### Configuration commands
 
 * `init` Creates an initial configuration file from Magento configuration.
 * `test` Tests the syntax of the configuration file.
 
-### Testing related commands
+### Testing commands
 
 * `fake-medias` Generate fake or minimal image files from the products.csv and product_models.csv files.
 
-### Fixtures-generation related commands
+### Fixtures-generation commands
 
 * `magento` Generate the fixtures files depending on your catalog.yaml configuration and your Magento data.
 * `magento:attribute-options` same, but only attribute options
@@ -93,6 +93,8 @@ Available commands
 
 ### Internal commands
 
+* `help` Display command help
+* `list` Lists all commands available
 * `self-update` Update the `bisous` command to the latest available
 
 The `catalog.yml` file
