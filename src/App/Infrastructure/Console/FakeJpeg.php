@@ -2,10 +2,10 @@
 
 namespace App\Infrastructure\Console;
 
-final class RandomPng extends RandomImage
+final class FakeJpeg extends FakeImage
 {
     public function url(): string
     {
-        return 'http://placehold.jp/300x200.png';
+        return 'https://placeimg.com/640/480/tech';
     }
 }

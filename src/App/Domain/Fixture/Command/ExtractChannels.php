@@ -3,9 +3,16 @@
 namespace App\Domain\Fixture\Command;
 
 use App\Domain\Fixture\IterableToCsv;
+use App\Domain\Magento\Locale;
+use App\Domain\Magento\Scope;
 
 class ExtractChannels
 {
+    /**
+     * @param \SplFileObject $output
+     * @param Scope[] $scopes
+     * @param Locale[] $locales
+     */
     public function __invoke(
         \SplFileObject $output,
         array $scopes,
@@ -18,39 +25,42 @@ class ExtractChannels
                 'locales',
                 'currencies',
             ],
-            array_map(function($locale) {
-                return 'label-' . $locale;
-            }, array_keys($locales))
+            array_map(function(Locale $locale) {
+                return 'label-' . $locale->code();
+            }, $locales)
         );
 
         (new IterableToCsv($columns))
         (
             (function(array $scopes, array $locales) {
-                foreach ($scopes as $code => $scope) {
+                /** @var Scope $scope */
+                foreach ($scopes as $scope) {
                     yield array_merge(
                         [
-                            'code' => $code,
+                            'code' => $scope->code(),
                             'tree' => 'root_catalog',
-                            'locales' => implode(',',  array_map(function($locale) {
-                                return $locale['code'];
-                            }, $scope['locales'])),
+                            'locales' => implode(',',  array_map(function(Locale $locale) {
+                                return $locale->code();
+                            }, $scope->locales())),
                             'currencies' => implode(',', array_values(array_unique(array_map(
                                 function(array $item) {
                                     return $item['currency'];
                                 },
                                 array_filter(
                                     $locales,
-                                    function (array $locale) use ($scope) {
-                                        return in_array($locale['code'], array_column($scope['locales'], 'code'));
+                                    function (Locale $locale) use ($scope) {
+                                        return in_array($locale->code(), array_map(function(Locale $locale) {
+                                            return $locale->code();
+                                        }, $scope->locales()));
                                     }
                                 )
                             )))),
                         ],
-                        ...array_map(function($locale) use($code) {
+                        ...array_map(function(Locale $locale) use($scope) {
                             return [
-                                'label-' . $locale['code'] => sprintf('%s (%s)', $code, $locale['code']),
+                                'label-' . $locale->code() => sprintf('%s (%s)', $scope->code(), $locale->code()),
                             ];
-                        }, $scope['locales'])
+                        }, $scope->locales())
                     );
                 }
             })($scopes, $locales),

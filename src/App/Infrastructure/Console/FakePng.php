@@ -2,10 +2,10 @@
 
 namespace App\Infrastructure\Console;
 
-final class RandomGif extends RandomImage
+final class FakePng extends FakeImage
 {
     public function url(): string
     {
-        return 'https://www.placecage.com/gif/200/300';
+        return 'http://placehold.jp/300x200.png';
     }
 }

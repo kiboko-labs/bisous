@@ -9,12 +9,15 @@ class Locale implements LocaleInterface
 {
     /** @var string */
     private $code;
+    /** @var string */
+    private $currency;
     /** @var MagentoStore */
     private $default;
 
-    public function __construct(string $code, MagentoStore $default)
+    public function __construct(string $code, string $currency, MagentoStore $default)
     {
         $this->code = $code;
+        $this->currency = $currency;
         $this->default = $default;
     }
 
@@ -26,6 +29,11 @@ class Locale implements LocaleInterface
     public function code(): string
     {
         return $this->code;
+    }
+
+    public function currency(): string
+    {
+        return $this->currency;
     }
 
     public function store(): MagentoStore

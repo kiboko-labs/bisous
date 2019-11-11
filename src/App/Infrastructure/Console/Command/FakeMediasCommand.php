@@ -8,9 +8,12 @@ use App\Domain\Magento\Locale;
 use App\Domain\Magento\Scope;
 use App\Infrastructure\AttributeRendererFactory;
 use App\Infrastructure\Configuration\YamlFileLoader;
-use App\Infrastructure\Console\RandomGif;
-use App\Infrastructure\Console\RandomJpeg;
-use App\Infrastructure\Console\RandomPng;
+use App\Infrastructure\Console\MinimalGif;
+use App\Infrastructure\Console\MinimalJpeg;
+use App\Infrastructure\Console\MinimalPng;
+use App\Infrastructure\Console\FakeGif;
+use App\Infrastructure\Console\FakeJpeg;
+use App\Infrastructure\Console\FakePng;
 use App\Infrastructure\Normalizer\Magento\AttributeDenormalizerFactory;
 use App\Infrastructure\Normalizer\Magento\LocaleDenormalizerFactory;
 use App\Infrastructure\Normalizer\Magento\ScopeDenormalizerFactory;
@@ -42,13 +45,20 @@ class FakeMediasCommand extends Command
 
     protected function configure()
     {
-        $this->setDescription('Generate minimal image files from the products.csv and product_models.csv files.');
+        $this->setDescription('Generate fake or minimal image files from the products.csv and product_models.csv files.');
 
         $this->addOption(
             'config',
             'c',
             InputOption::VALUE_OPTIONAL,
             'Specify the path to the catalog config file.'
+        );
+
+        $this->addOption(
+            'fake',
+            null,
+            InputOption::VALUE_OPTIONAL,
+            'Prefer fake images over minimal images.'
         );
 
         $this->addArgument(
@@ -134,12 +144,12 @@ class FakeMediasCommand extends Command
         $file = new \SplFileObject($csvLocator->locate('product_models.csv'), 'r');
         $file->setCsvControl(';', '"', '"');
 
-        $this->walkFile($basePath, $file, $attributeRenderers);
+        $this->walkFile($basePath, $file, $attributeRenderers, $input->getOption('fake'));
 
         return 0;
     }
 
-    private function walkFile(string $basePath, \SplFileObject $file, array $attributeRenderers): void
+    private function walkFile(string $basePath, \SplFileObject $file, array $attributeRenderers, bool $isFake = false): void
     {
         $columns = $file->fgetcsv();
 
@@ -158,12 +168,9 @@ class FakeMediasCommand extends Command
             return;
         }
 
-//        $jpeg = file_get_contents('https://raw.githubusercontent.com/mathiasbynens/small/master/jpeg.jpg');
-//        $gif = file_get_contents('https://raw.githubusercontent.com/mathiasbynens/small/master/gif.gif');
-//        $png = file_get_contents('https://raw.githubusercontent.com/mathiasbynens/small/master/png-truncated.png');
-        $jpeg = new RandomJpeg();
-        $gif = new RandomGif();
-        $png = new RandomPng();
+        $jpeg = $isFake === false ? new MinimalJpeg() : new FakeJpeg();
+        $gif = $isFake === false ? new MinimalGif() : new FakeGif();
+        $png = $isFake === false ? new MinimalPng() : new FakePng();
 
         while (!$file->eof()) {
             $line = $file->fgetcsv();

@@ -28,6 +28,11 @@ class LocaleMapping implements LocaleInterface
         return $this->locale->code();
     }
 
+    public function currency(): string
+    {
+        return $this->locale->currency();
+    }
+
     public function store(): MagentoStore
     {
         return $this->store;

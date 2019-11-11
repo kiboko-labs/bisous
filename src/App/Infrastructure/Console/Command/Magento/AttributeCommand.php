@@ -1,21 +1,18 @@
 <?php
 
-namespace App\Infrastructure\Console\Command;
+namespace App\Infrastructure\Console\Command\Magento;
 
 use App\Domain\Fixture;
 use App\Domain\Magento\Attribute;
 use App\Domain\Magento\AttributeRenderer;
-use App\Domain\Magento\Family;
 use App\Domain\Magento\Locale;
 use App\Domain\Magento\Scope;
 use App\Domain\Magento\SqlExportTwigExtension;
 use App\Infrastructure\AttributeRendererFactory;
 use App\Infrastructure\Configuration\YamlFileLoader;
-use App\Infrastructure\FamiliesFactory;
 use App\Infrastructure\Normalizer\Magento\AttributeDenormalizerFactory;
 use App\Infrastructure\Normalizer\Magento\LocaleDenormalizerFactory;
 use App\Infrastructure\Normalizer\Magento\ScopeDenormalizerFactory;
-use App\Infrastructure\VariantAxisesFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\Config\Exception\LoaderLoadException;
@@ -33,9 +30,9 @@ use Twig\Environment;
 use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
 
-class MagentoCommand extends Command
+class AttributeCommand extends Command
 {
-    protected static $defaultName = 'magento';
+    protected static $defaultName = 'magento:attributes';
 
     private $logger;
 
@@ -47,7 +44,7 @@ class MagentoCommand extends Command
 
     protected function configure()
     {
-        $this->setDescription('Generate the fixtures files depending on your catalog.yaml configuration and your Magento data.');
+        $this->setDescription('Generate the attribute fixtures files depending on your catalog.yaml configuration and your Magento data.');
 
         $this->addOption(
             'dsn',
@@ -176,26 +173,6 @@ class MagentoCommand extends Command
             $config['attributes']
         );
 
-        /** @var Family[] $families */
-        $families = (new FamiliesFactory(...$attributeRenderers))($config);
-        /** @var Attribute[] $axises */
-        $axises = (new VariantAxisesFactory(...$attributeRenderers))($config);
-
-        (new Fixture\Command\ExtractLocales())(
-            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/locales.yml', 'x'),
-            $locales
-        );
-
-        $style->writeln('locales <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
-
-        (new Fixture\Command\ExtractChannels())(
-            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/channels.csv', 'x'),
-            $scopes,
-            $locales
-        );
-
-        $style->writeln('channels <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
-
         (new Fixture\Command\ExtractAttributes($pdo, $twig, $this->logger))(
             new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/attributes.csv', 'x'),
             $attributeRenderers,
@@ -204,51 +181,6 @@ class MagentoCommand extends Command
         );
 
         $style->writeln('attributes <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
-
-        (new Fixture\Command\ExtractAttributeOptions($pdo, $twig, $this->logger))(
-            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/attribute_options.csv', 'x'),
-            array_keys($config['attributes']),
-            array_keys($config['locales']),
-            $config['codes_mapping']
-        );
-
-        $style->writeln('attribute options <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
-
-        (new Fixture\Command\ExtractAttributeGroups())(
-            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/attribute_groups.csv', 'x'),
-            $config['groups'],
-            array_keys($config['locales'])
-        );
-
-        $style->writeln('attribute groups <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
-
-        (new Fixture\Command\ExtractFamilies())(
-            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/families.csv', 'x'),
-            $config['families'],
-            $config['scopes'],
-            array_keys($config['locales'])
-        );
-
-        $style->writeln('families <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
-
-        (new Fixture\Command\ExtractFamilyVariants())(
-            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/family_variants.csv', 'x'),
-            $config['families'],
-            array_keys($config['locales'])
-        );
-
-        $style->writeln('family variants <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
-
-        (new Fixture\Command\ExtractProducts($pdo, $twig, $this->logger))(
-            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/products.csv', 'x'),
-            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/product_models.csv', 'x'),
-            $attributeRenderers,
-            $families,
-            $axises,
-            $config['codes_mapping']
-        );
-
-        $style->writeln('products and product models <fg=green>ok</>', SymfonyStyle::OUTPUT_PLAIN);
 
         return 0;
     }

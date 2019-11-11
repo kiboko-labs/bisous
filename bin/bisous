@@ -65,10 +65,18 @@ $factory = new class($output) {
 $application = new Application('Bisous', '1.0.3');
 $application->setCommandLoader(new FactoryCommandLoader([
     'init' => $factory($application, \App\Infrastructure\Console\Command\InitializeCommand::class),
-    'magento' => $factory($application, \App\Infrastructure\Console\Command\MagentoCommand::class),
+
     'fake-medias' => $factory($application, \App\Infrastructure\Console\Command\FakeMediasCommand::class),
     'self-update' => $factory($application, \App\Infrastructure\Console\Command\SelfUpdateCommand::class),
     'test' => $factory($application, \App\Infrastructure\Console\Command\TestCommand::class),
-    'products' => $factory($application, \App\Infrastructure\Console\Command\ProductCommand::class),
+
+    'magento' => $factory($application, \App\Infrastructure\Console\Command\MagentoCommand::class),
+    'magento:attribute-options' => $factory($application, \App\Infrastructure\Console\Command\Magento\AttributeOptionCommand::class),
+    'magento:attribute-groups' => $factory($application, \App\Infrastructure\Console\Command\Magento\AttributeGroupCommand::class),
+    'magento:attributes' => $factory($application, \App\Infrastructure\Console\Command\Magento\AttributeCommand::class),
+    'magento:channels' => $factory($application, \App\Infrastructure\Console\Command\Magento\ChannelCommand::class),
+    'magento:family' => $factory($application, \App\Infrastructure\Console\Command\Magento\FamilyCommand::class),
+    'magento:locale' => $factory($application, \App\Infrastructure\Console\Command\Magento\LocaleCommand::class),
+    'magento:products' => $factory($application, \App\Infrastructure\Console\Command\Magento\ProductCommand::class),
 ]));
 $application->run($input, $output);

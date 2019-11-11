@@ -68,6 +68,25 @@ Once properly installed, run `bisous magento <akeneo-directory>/src/InstallerBun
 
 This command will create fixtures file required by Akeneo, with your Magento catalog data and structure.
 
+Available commands
+---
+
+* `init` Creates an initial configuration file from Magento configuration.
+* `test` Tests the syntax of the configuration file.
+
+* `fake-medias` Generate fake or minimal image files from the products.csv and product_models.csv files.
+
+* `magento` Generate the fixtures files depending on your catalog.yaml configuration and your Magento data.
+* `magento:attribute-options` same, but only attribute options
+* `magento:attribute-groups` same, but only attribute groups
+* `magento:attributes` same, but only attributes
+* `magento:channels` same, but only channels
+* `magento:families` same, but only families
+* `magento:locales` same, but only locales
+* `magento:products` same, but only products
+
+* `self-update` Update the `bisous` command to the latest available
+
 The `catalog.yml` file
 ---
 
@@ -78,13 +97,14 @@ The `catalog.yml` file has a root node named `catalog:`, and 5 sub-nodes describ
 This section is useful for describing your attribute list. It is an array of configuration fields, with the following fields:
 
 * `code` (string): Your attribute code, as seen in Akeneo
-* `type` (string): The attribute's type (valid values are `identifier`, `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `multiple-select`, `datetime`, `metric`, `image`)
+* `type` (string): The attribute's type (valid values are `identifier`, `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `multiple-select`, `datetime`, `metric`, `image`, `image-gallery-item`)
 * `strategy` (string): The import strategy, following the next possible values:
   * `ad-hoc`: the attribute will be created in Akeneo in the same way it was created in Magento
   * `aliased`: the attrib ute will be created in Akeneo with another code than the one existing in Magento
   * `ex-nihilo`: the attribute will be created in Akeneo without taking into account any attribute present in Magento
 * `group` (string): the attribute group in which the attribute will be assigned in Akeneo
 * `source` (string) (for strategy `aliased` only): the attribute code in Magento
+* `position` (string) (for attribute type `image-gallery-item` only): the image index in the Magento media gallery
 * `scoped` (bool): to specify it the attribute is scopable (only applies to types `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `multiple-select`, `datetime`, `metric`, `image`, will produce an error in Akeneo if used on a variant axis attribute) 
 * `localised` (bool): to specify it the attribute is localizable (only applies to types `text`, `text-area`, `rich-text`, `status`, `visibility`, `simple-select`, `multiple-select`, `datetime`, `metric`, `image`, will produce an error in Akeneo if used on a variant axis attribute) 
 
@@ -120,6 +140,18 @@ catalog:
       type: image
       strategy: ad-hoc
       group: marketing
+    - code: alternative_image_1
+      type: image-gallery-item
+      strategy: aliased
+      group: marketing
+      source: media_gallery
+      position: 1
+    - code: alternative_image_2
+      type: image-gallery-item
+      strategy: aliased
+      group: marketing
+      source: media_gallery
+      position: 2
 ```
 
 ### The `groups:` section
@@ -233,6 +265,9 @@ catalog:
 ```
 
 ### The `codes-mapping:` section
+
+This section is used for the attribute options codes generation. As those codes
+does not exist in Magento we need to build them based on the default labels. 
 
 Example:
 

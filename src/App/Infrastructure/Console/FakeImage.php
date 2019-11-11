@@ -2,7 +2,7 @@
 
 namespace App\Infrastructure\Console;
 
-abstract class RandomImage
+abstract class FakeImage implements Image
 {
     private $images;
 
