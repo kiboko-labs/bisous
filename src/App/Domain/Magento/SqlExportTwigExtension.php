@@ -57,7 +57,7 @@ class SqlExportTwigExtension extends AbstractExtension
                     ]
                 );
             }),
-            new TwigFunction('as_attribute_localized_table', function(Attribute $attribute, Locale $locale) {
+            new TwigFunction('as_attribute_localized_table', function(Attribute $attribute, LocaleStore $locale) {
                 return strtr(
                     'tmp_{{ attribute }}_{{ locale }}',
                     [
@@ -75,7 +75,7 @@ class SqlExportTwigExtension extends AbstractExtension
                     ]
                 );
             }),
-            new TwigFunction('as_attribute_scoped_and_localized_table', function(Attribute $attribute, Scope $scope, Locale $locale) {
+            new TwigFunction('as_attribute_scoped_and_localized_table', function(Attribute $attribute, Scope $scope, LocaleStore $locale) {
                 return strtr(
                     'tmp_{{ attribute }}_{{ scope }}_{{ locale }}',
                     [
@@ -91,7 +91,7 @@ class SqlExportTwigExtension extends AbstractExtension
                     '%parent%' => $skuField,
                 ];
 
-                foreach ($family->axis(1)->attributes as $attribute) {
+                foreach ($family->axis(1)->axises() as $attribute) {
                     /** @var Field $field */
                     foreach ($attribute->fields() as $field) {
                         $replacements['%' . $attribute->attribute()->code() . '%'] = strtr(

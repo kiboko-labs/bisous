@@ -4,6 +4,7 @@ namespace App\Domain\Fixture\Command;
 
 use App\Domain\Fixture\IterableToCsv;
 use App\Domain\Magento\Locale;
+use App\Domain\Magento\LocaleStore;
 use App\Domain\Magento\Scope;
 
 class ExtractChannels
@@ -25,7 +26,7 @@ class ExtractChannels
                 'locales',
                 'currencies',
             ],
-            array_map(function(Locale $locale) {
+            array_map(function(LocaleStore $locale) {
                 return 'label-' . $locale->code();
             }, $locales)
         );
@@ -39,24 +40,24 @@ class ExtractChannels
                         [
                             'code' => $scope->code(),
                             'tree' => 'root_catalog',
-                            'locales' => implode(',',  array_map(function(Locale $locale) {
+                            'locales' => implode(',',  array_map(function(LocaleStore $locale) {
                                 return $locale->code();
                             }, $scope->locales())),
                             'currencies' => implode(',', array_values(array_unique(array_map(
-                                function(array $item) {
-                                    return $item['currency'];
+                                function(Locale $item) {
+                                    return $item->currency();
                                 },
                                 array_filter(
                                     $locales,
                                     function (Locale $locale) use ($scope) {
-                                        return in_array($locale->code(), array_map(function(Locale $locale) {
+                                        return in_array($locale->code(), array_map(function(LocaleStore $locale) {
                                             return $locale->code();
                                         }, $scope->locales()));
                                     }
                                 )
                             )))),
                         ],
-                        ...array_map(function(Locale $locale) use($scope) {
+                        ...array_map(function(LocaleStore $locale) use($scope) {
                             return [
                                 'label-' . $locale->code() => sprintf('%s (%s)', $scope->code(), $locale->code()),
                             ];

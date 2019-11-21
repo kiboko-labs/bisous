@@ -3,19 +3,8 @@
 namespace App\Infrastructure\Console\Command\Magento;
 
 use App\Domain\Fixture;
-use App\Domain\Magento\Attribute;
-use App\Domain\Magento\AttributeRenderer;
-use App\Domain\Magento\Family;
-use App\Domain\Magento\Locale;
-use App\Domain\Magento\Scope;
 use App\Domain\Magento\SqlExportTwigExtension;
-use App\Infrastructure\AttributeRendererFactory;
 use App\Infrastructure\Configuration\YamlFileLoader;
-use App\Infrastructure\FamiliesFactory;
-use App\Infrastructure\Normalizer\Magento\AttributeDenormalizerFactory;
-use App\Infrastructure\Normalizer\Magento\LocaleDenormalizerFactory;
-use App\Infrastructure\Normalizer\Magento\ScopeDenormalizerFactory;
-use App\Infrastructure\VariantAxisesFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\Config\Exception\LoaderLoadException;

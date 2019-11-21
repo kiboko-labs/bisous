@@ -2,6 +2,7 @@
 
 namespace App\Domain\Fixture\Command;
 
+use App\Domain\Fixture\ExtractPimgentoMapping;
 use App\Domain\Fixture\SqlToCsv;
 use App\Domain\Magento\Attribute\ExNihilo;
 use App\Domain\Magento\AttributeRenderer;
@@ -9,9 +10,11 @@ use App\Domain\Magento\Family;
 use App\Domain\Magento\FamilyVariant;
 use App\Infrastructure\AttributeAggregator;
 use App\Infrastructure\Command\AttributeRendererCommand;
+use App\Infrastructure\FamilyVariantAxisAggregator;
 use App\Infrastructure\FamilyVariantAxisAttributeAggregator;
 use App\Infrastructure\Command\CommandBus;
 use App\Infrastructure\Command\TwigCommand;
+use App\Infrastructure\FamilyVariantMasterAttributeAggregator;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -42,10 +45,12 @@ class ExtractProducts implements LoggerAwareInterface
      * @param AttributeRenderer[] $attributes
      * @param Family[] $families
      * @param FamilyVariant[] $familyVariants
+     * @param array $mapping
      */
     public function __invoke(
         \SplFileObject $productOutput,
         \SplFileObject $productModelOutput,
+        \SplFileObject $pimgentoMappingOutput,
         array $attributes,
         array $families,
         array $familyVariants,
@@ -117,7 +122,7 @@ class ExtractProducts implements LoggerAwareInterface
                     'product/03-generate-intermediate-product-models.sql.twig',
                     [
                         'variants' => $familyVariants,
-                        'attributes' => (new FamilyVariantAxisAttributeAggregator())(...$familyVariants),
+                        'attributes' => (new FamilyVariantAxisAggregator())(...$familyVariants),
                     ],
                     $this->logger
                 )
@@ -128,13 +133,18 @@ class ExtractProducts implements LoggerAwareInterface
                     $this->twig,
                     'product/04-consolidate-product-models.sql.twig',
                     [
-                        'attributes' => (new FamilyVariantAxisAttributeAggregator())(...$familyVariants),
+                        'variants' => $familyVariants,
+                        'attributes' => new FamilyVariantMasterAttributeAggregator(),
                     ],
                     $this->logger
                 )
             );
 
             $bus($this->pdo);
+
+            $this->logger->info('Compiling template {template}.', [
+                'template' => 'extract-products.sql.twig'
+            ]);
 
             $view = $this->twig->load('extract-products.sql.twig');
 
@@ -147,15 +157,56 @@ class ExtractProducts implements LoggerAwareInterface
                 $productOutput
             );
 
+            $this->logger->info('Compiling template {template}.', [
+                'template' => 'extract-product-models.sql.twig'
+            ]);
+
             $view = $this->twig->load('extract-product-models.sql.twig');
 
             (new SqlToCsv($this->pdo, $this->logger))
             (
                 $view->render([
-                    'attributes' => (new FamilyVariantAxisAttributeAggregator())(...$familyVariants),
                     'variants' => $familyVariants,
+                    'attributes' => new FamilyVariantMasterAttributeAggregator(),
                 ]),
                 $productModelOutput
+            );
+
+            (new ExtractPimgentoMapping($this->pdo, $this->logger))
+            (
+                $this->twig
+                    ->load('pimgento/attributes.sql.twig')
+                    ->render([
+                        'attributes' => $attributes,
+                    ]),
+                function(array $row) {
+                    return ['attribute', $row['code'], $row['id']];
+                },
+                $pimgentoMappingOutput
+            )
+            (
+                $this->twig
+                    ->load('pimgento/attribute-options.sql.twig')
+                    ->render([
+                        'attributes' => $attributes,
+                        'mapping' => $mapping,
+                    ]),
+                function(array $row) {
+                    return ['option', $row['code'], $row['id']];
+                },
+                $pimgentoMappingOutput
+            )
+            (
+                $this->twig
+                    ->load('pimgento/families.sql.twig')
+                    ->render([
+                        'families' => $families,
+                        'mapping' => $mapping,
+                    ]),
+                function(array $row) {
+                    return ['family', $row['code'], $row['id']];
+                },
+                $pimgentoMappingOutput
             );
         } catch (\RuntimeException|LoaderError|RuntimeError|SyntaxError|FatalThrowableError $e) {
             throw new \RuntimeException('An error occurred during the product data extraction.', null, $e);

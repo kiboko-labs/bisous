@@ -64,5 +64,10 @@
             "allow-contrib": false,
             "require": "4.3.*"
         }
+    },
+    "require-dev": {
+        "drupol/phpspec-code-coverage": "^4.0@dev",
+        "infection/infection": "dev-master",
+        "phpspec/phpspec": "^5.1"
     }
 }

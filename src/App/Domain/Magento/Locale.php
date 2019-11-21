@@ -2,9 +2,8 @@
 
 namespace App\Domain\Magento;
 
-interface Locale
+interface Locale extends LocaleStore
 {
-    public function code(): string;
     public function currency(): string;
     public function store(): MagentoStore;
 }

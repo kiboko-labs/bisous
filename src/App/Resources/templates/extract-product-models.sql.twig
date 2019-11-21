@@ -1,3 +1,123 @@
-SELECT * FROM tmp_parent_models
+
+{% set variantRequests = [] %}
+
+{% for variant in variants %}
+    {% if variant.isTwoLevels == true %}
+        {% set request %}
+
+SELECT
+            {% for attribute in attributes.all(variant) -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    models.`{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(1).axises -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    models.`{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(2).axises -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    NULL AS `{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(1).attributes -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    NULL AS `{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(2).attributes -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    NULL AS `{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+    NULL AS parent,
+    models.family_variant AS family_variant,
+    models.code AS code
+
+FROM tmp_parent_models AS models
+        {% endset %}
+
+        {% set variantRequests = variantRequests|merge([request]) %}
+
+    {% endif %}
+{% endfor %}
+
+{% if variantRequests|length > 0 %}
+SELECT *
+FROM (
+    {{ variantRequests|join('UNION\n') }}
+) AS subrequests
+{% endif %}
 UNION
-SELECT * FROM tmp_child_models
+
+{% set variantRequests = [] %}
+
+{% for variant in variants %}
+    {% if variant.isTwoLevels == true %}
+        {% set request %}
+
+SELECT
+            {% for attribute in attributes.all(variant) -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    NULL AS `{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(1).axises -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    NULL AS `{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(2).axises -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    models.`{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(1).attributes -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    models.`{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(2).attributes -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    NULL AS `{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+    models.parent AS parent,
+    models.family_variant AS family_variant,
+    models.code AS code
+
+FROM tmp_child_models AS models
+        {% endset %}
+
+        {% set variantRequests = variantRequests|merge([request]) %}
+
+    {% endif %}
+{% endfor %}
+
+{% if variantRequests|length > 0 %}
+SELECT *
+FROM (
+    {{ variantRequests|join('UNION\n') }}
+) AS subrequests;
+{% endif %}

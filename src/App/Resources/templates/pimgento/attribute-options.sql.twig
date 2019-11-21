@@ -1,0 +1,37 @@
+SELECT
+    {% set codeMapping -%}
+    LOWER(opt_value_default.value)
+    {%- endset -%}
+    {%- for replace in mapping -%}
+        {%- set codeMapping -%}
+        REPLACE({{ codeMapping }}, '{{ replace.from }}', '{{ replace.to }}')
+        {%- endset -%}
+    {%- endfor %}
+    SUBSTRING(CONCAT(codes.code, '_', {{ codeMapping }}), 1, 100) AS code,
+    opt.option_id AS id
+FROM (
+{%- set renderedAttributes = [] -%}
+
+{%- for attribute in attributes -%}
+    {% set renderedAttribute %}
+    SELECT '{{ attribute.attribute.code }}' AS code
+    {%  endset %}
+
+    {%- set renderedAttributes = renderedAttributes|merge([renderedAttribute]) -%}
+{%- endfor -%}
+    {{ renderedAttributes|join(' UNION ') }}
+) AS codes
+INNER JOIN (
+    SELECT
+        attribute.attribute_id,
+        attribute.attribute_code
+    FROM eav_attribute AS attribute
+    INNER JOIN eav_entity_type AS entity
+        ON entity.entity_type_id = attribute.entity_type_id
+    WHERE entity.entity_type_code='catalog_product'
+) AS attributes ON attributes.attribute_code=codes.code
+INNER JOIN eav_attribute_option AS opt
+    ON opt.attribute_id=attributes.attribute_id
+INNER JOIN eav_attribute_option_value AS opt_value_default
+    ON opt_value_default.option_id=opt.option_id
+    AND opt_value_default.store_id=0

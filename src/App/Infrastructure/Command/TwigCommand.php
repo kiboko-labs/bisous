@@ -37,7 +37,7 @@ class TwigCommand implements CommandInterface, LoggerAwareInterface
     public function __invoke(\PDO $connection): void
     {
         try {
-            $this->logger->debug('Compiling template {template}.', [
+            $this->logger->info('Compiling template {template}.', [
                 'template' => $this->twigTemplate
             ]);
 

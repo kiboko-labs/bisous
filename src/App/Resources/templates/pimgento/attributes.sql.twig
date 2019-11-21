@@ -1,0 +1,24 @@
+SELECT
+    attributes.attribute_code AS code,
+    attributes.attribute_id AS id
+FROM (
+{%- set renderedAttributes = [] -%}
+
+{%- for attribute in attributes -%}
+    {% set renderedAttribute %}
+    SELECT '{{ attribute.attribute.code }}' AS code
+    {%  endset %}
+
+    {%- set renderedAttributes = renderedAttributes|merge([renderedAttribute]) -%}
+{%- endfor -%}
+    {{ renderedAttributes|join(' UNION ') }}
+) AS codes
+INNER JOIN (
+    SELECT
+        attribute.attribute_id,
+        attribute.attribute_code
+    FROM eav_attribute AS attribute
+    INNER JOIN eav_entity_type AS entity
+        ON entity.entity_type_id = attribute.entity_type_id
+    WHERE entity.entity_type_code='catalog_product'
+) AS attributes ON attributes.attribute_code=codes.code

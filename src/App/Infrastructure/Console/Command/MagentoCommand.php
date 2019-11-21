@@ -242,6 +242,7 @@ class MagentoCommand extends Command
         (new Fixture\Command\ExtractProducts($pdo, $twig, $this->logger))(
             new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/products.csv', 'x'),
             new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/product_models.csv', 'x'),
+            new \SplFileObject(($input->getArgument('output') ?? getcwd()) . '/pimgento.sql', 'x'),
             $attributeRenderers,
             $families,
             $axises,

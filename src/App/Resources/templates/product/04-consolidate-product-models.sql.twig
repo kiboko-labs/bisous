@@ -1,20 +1,46 @@
-CREATE TEMPORARY TABLE tmp_parent_models
+{% set variantRequests = [] %}
+
+{% for variant in variants %}
+    {% if variant.isTwoLevels == true %}
+        {% set request %}
+
 SELECT
-{% for attribute in attributes %}
-    {% for field in attribute.fields %}
+            {% for attribute in attributes.all(variant) -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
     {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}`,
-    {% endfor %}
-{% endfor %}
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(1).axises -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    hierarchy.`{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
     hierarchy.parent AS code,
     hierarchy.family_variant AS family_variant,
     NULL AS parent
 FROM tmp_sku AS product
-{% for attribute in attributes %}
-LEFT JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias(attribute.attribute) }}
+            {% for attribute in attributes.all(variant) -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+LEFT JOIN {{ as_attribute_table(attribute.attribute) }} AS {{ as_attribute_alias(attribute.attribute) }}
     ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
-{% endfor %}
+                {% endif %}
+            {% endfor %}
 INNER JOIN (
-    SELECT DISTINCT hierarchy.parent, hierarchy.family, hierarchy.family_variant
+    SELECT DISTINCT
+            {% for attribute in variant.axis(1).axises -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+        MAX(hierarchy.`{{ as_field_column(field) }}`) AS `{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+        hierarchy.parent,
+        hierarchy.family,
+        hierarchy.family_variant
     FROM tmp_hierarchy as hierarchy
     GROUP BY
         hierarchy.parent,
@@ -22,46 +48,202 @@ INNER JOIN (
         hierarchy.family_variant
 ) AS hierarchy
     ON hierarchy.parent=product.sku
-WHERE product.type_id IN ('configurable');
+WHERE product.type_id IN ('configurable')
 
-CREATE TEMPORARY TABLE tmp_child_models
-SELECT
-{% for attribute in attributes %}
-    {% for field in attribute.fields %}
-    hierarchy.`{{ as_field_column(field) }}`,
-    {% endfor %}
+        {% endset %}
+
+        {% set variantRequests = variantRequests|merge([request]) %}
+
+    {% endif %}
 {% endfor %}
+CREATE TEMPORARY TABLE tmp_parent_models (
+
+{% for variant in variants %}
+    {% for attribute in attributes.all(variant) -%}
+        {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+            {% if (attribute ~ '') is same as('text') or (attribute ~ '') is same as('identifier') or (attribute ~ '') is same as('simple-select') or (attribute ~ '') is same as('status') or (attribute ~ '') is same as('visibility') or (attribute ~ '') is same as('image') or (attribute ~ '') is same as('image-gallery-item') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` VARCHAR(255) NULL,
+                {% endfor -%}
+            {%- elseif (attribute ~ '') is same as('text-area') or (attribute ~ '') is same as('rich-text') or (attribute ~ '') is same as('multiple-select') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` TEXT NULL,
+                {% endfor -%}
+            {%- elseif (attribute ~ '') is same as('metric') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` DECIMAL(24,6) NULL,
+                {% endfor -%}
+            {%- elseif (attribute ~ '') is same as('number') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` INTEGER NULL,
+                {% endfor -%}
+            {%- elseif (attribute ~ '') is same as('datetime') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` DATETIME NULL,
+                {% endfor -%}
+            {%- endif %}
+        {% endif %}
+    {% endfor -%}
+    {% for attribute in variant.axis(1).axises -%}
+        {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+            {% if (attribute ~ '') is same as('text') or (attribute ~ '') is same as('identifier') or (attribute ~ '') is same as('simple-select') or (attribute ~ '') is same as('status') or (attribute ~ '') is same as('visibility') or (attribute ~ '') is same as('image') or (attribute ~ '') is same as('image-gallery-item') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` VARCHAR(255) NULL,
+                {% endfor -%}
+            {%- elseif (attribute ~ '') is same as('text-area') or (attribute ~ '') is same as('rich-text') or (attribute ~ '') is same as('multiple-select') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` TEXT NULL,
+                {% endfor -%}
+            {%- elseif (attribute ~ '') is same as('metric') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` DECIMAL(24,6) NULL,
+                {% endfor -%}
+            {%- elseif (attribute ~ '') is same as('number') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` INTEGER NULL,
+                {% endfor -%}
+            {%- elseif (attribute ~ '') is same as('datetime') -%}
+                {% for field in attribute.fields() %}
+                    `{{ as_field_column(field) }}` DATETIME NULL,
+                {% endfor -%}
+            {%- endif %}
+        {% endif %}
+    {% endfor -%}
+{% endfor %}
+    code VARCHAR(255) NOT NULL,
+    family_variant  VARCHAR(255) NOT NULL,
+    parent VARCHAR(255) NULL
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+{% if variantRequests|length > 0 %}
+SELECT *
+FROM (
+    {{ variantRequests|join('UNION\n') }}
+) AS subrequests;
+{% endif %}
+
+{% set variantRequests = [] %}
+
+{% for variant in variants %}
+    {% if variant.isTwoLevels == true %}
+        {% set request %}
+
+SELECT
+            {% for attribute in variant.axis(1).attributes -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    {{ as_attribute_alias(attribute.attribute) }}.`{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
+            {% for attribute in variant.axis(2).axises -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+    hierarchy.`{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
     hierarchy.child AS code,
     hierarchy.family_variant AS family_variant,
     hierarchy.parent AS parent
 FROM tmp_sku AS product
-{% for attribute in attributes %}
+            {% for attribute in variant.axis(1).attributes -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
 LEFT JOIN {{ as_attribute_table(attribute.attribute) }} as {{ as_attribute_alias(attribute.attribute) }}
     ON {{ as_attribute_alias(attribute.attribute) }}.entity_id=product.entity_id
-{% endfor %}
+                {% endif %}
+            {% endfor -%}
 INNER JOIN (
-    SELECT
-    {% for attribute in attributes %}
-        {% for field in attribute.fields %}
-        hierarchy.`{{ as_field_column(field) }}`,
-        {% endfor %}
-    {% endfor %}
+    SELECT DISTINCT
+            {% for attribute in variant.axis(2).axises -%}
+                {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                    {% for field in attribute.fields() %}
+        MAX(hierarchy.`{{ as_field_column(field) }}`) AS `{{ as_field_column(field) }}`,
+                    {% endfor -%}
+                {% endif %}
+            {% endfor -%}
         MAX(hierarchy.parent) AS parent,
         MAX(hierarchy.family) AS family,
         MAX(hierarchy.family_variant) AS family_variant,
         hierarchy.child
     FROM tmp_hierarchy as hierarchy
     GROUP BY
-    {% for attribute in attributes %}
-        {% for field in attribute.fields %}
-    hierarchy.`{{ as_field_column(field) }}`,
-        {% endfor %}
-    {% endfor %}
         hierarchy.child,
         hierarchy.family,
         hierarchy.family_variant
 ) AS hierarchy
     ON hierarchy.parent=product.sku
-WHERE product.type_id IN ('configurable');
+WHERE product.type_id IN ('configurable')
 
+        {% endset %}
 
+        {% set variantRequests = variantRequests|merge([request]) %}
+
+    {% endif %}
+{% endfor %}
+
+CREATE TEMPORARY TABLE tmp_child_models (
+
+{% for variant in variants %}
+    {% if variant.isTwoLevels() %}
+        {% for attribute in variant.axis(1).attributes -%}
+            {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                {% if (attribute ~ '') is same as('text') or (attribute ~ '') is same as('identifier') or (attribute ~ '') is same as('simple-select') or (attribute ~ '') is same as('status') or (attribute ~ '') is same as('visibility') or (attribute ~ '') is same as('image') or (attribute ~ '') is same as('image-gallery-item') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` VARCHAR(255) NULL,
+                    {% endfor -%}
+                {%- elseif (attribute ~ '') is same as('text-area') or (attribute ~ '') is same as('rich-text') or (attribute ~ '') is same as('multiple-select') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` TEXT NULL,
+                    {% endfor -%}
+                {%- elseif (attribute ~ '') is same as('metric') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` DECIMAL(24,6) NULL,
+                    {% endfor -%}
+                {%- elseif (attribute ~ '') is same as('number') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` INTEGER NULL,
+                    {% endfor -%}
+                {%- elseif (attribute ~ '') is same as('datetime') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` DATETIME NULL,
+                    {% endfor -%}
+                {%- endif %}
+            {% endif %}
+        {% endfor -%}
+        {% for attribute in variant.axis(2).axises -%}
+            {% if (attribute.attribute ~ '') is not same as('ex-nihilo') and (attribute ~ '') is not same as('identifier') %}
+                {% if (attribute ~ '') is same as('text') or (attribute ~ '') is same as('identifier') or (attribute ~ '') is same as('simple-select') or (attribute ~ '') is same as('status') or (attribute ~ '') is same as('visibility') or (attribute ~ '') is same as('image') or (attribute ~ '') is same as('image-gallery-item') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` VARCHAR(255) NULL,
+                    {% endfor -%}
+                {%- elseif (attribute ~ '') is same as('text-area') or (attribute ~ '') is same as('rich-text') or (attribute ~ '') is same as('multiple-select') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` TEXT NULL,
+                    {% endfor -%}
+                {%- elseif (attribute ~ '') is same as('metric') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` DECIMAL(24,6) NULL,
+                    {% endfor -%}
+                {%- elseif (attribute ~ '') is same as('number') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` INTEGER NULL,
+                    {% endfor -%}
+                {%- elseif (attribute ~ '') is same as('datetime') -%}
+                    {% for field in attribute.fields() %}
+                        `{{ as_field_column(field) }}` DATETIME NULL,
+                    {% endfor -%}
+                {%- endif %}
+            {% endif %}
+        {% endfor -%}
+    {% endif -%}
+{% endfor %}
+    code VARCHAR(255) NOT NULL,
+    family_variant  VARCHAR(255) NOT NULL,
+    parent VARCHAR(255) NULL
+) CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+{% if variantRequests|length > 0 %}
+SELECT *
+FROM (
+    {{ variantRequests|join('UNION\n') }}
+) AS subrequests;
+{% endif %}

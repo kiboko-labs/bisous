@@ -4,6 +4,7 @@ namespace App\Infrastructure;
 
 use App\Domain\Magento\Attribute;
 use App\Domain\Magento\AttributeRenderer;
+use App\Domain\Magento\AxisAttributeList;
 use App\Domain\Magento\Family;
 use App\Domain\Magento\FamilyVariant;
 use App\Domain\Magento\FamilyVariantAxis;
@@ -33,15 +34,24 @@ class VariantAxisesFactory
                         $family,
                         $variation['code'],
                         $variation['skuPattern'],
-                        new FamilyVariantAxis(...$this->extractAttributes($variation['level_1']['axis'])),
-                        new FamilyVariantAxis(...$this->extractAttributes($variation['level_2']['axis']))
+                        new FamilyVariantAxis(
+                            new AxisAttributeList(...$this->extractAttributes($variation['level_1']['axis'])),
+                            ...$this->extractAttributes($variation['level_1']['attributes'])
+                        ),
+                        new FamilyVariantAxis(
+                            new AxisAttributeList(...$this->extractAttributes($variation['level_2']['axis'])),
+                            ...$this->extractAttributes($variation['level_2']['attributes'])
+                        )
                     );
                 } else {
                     yield new FamilyVariant(
                         $family,
                         $variation['code'],
                         null,
-                        new FamilyVariantAxis(...$this->extractAttributes($variation['level_1']['axis']))
+                        new FamilyVariantAxis(
+                            new AxisAttributeList(...$this->extractAttributes($variation['level_1']['axis'])),
+                            ...$this->extractAttributes($variation['level_1']['attributes'])
+                        )
                     );
                 }
             }

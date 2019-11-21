@@ -6,9 +6,22 @@ class FamilyVariantAxis
 {
     /** @var AttributeRenderer[] */
     public $attributes;
+    /** @var AxisAttributeList */
+    public $axises;
 
-    public function __construct(AttributeRenderer ...$renderers)
+    public function __construct(AxisAttributeList $axises, AttributeRenderer ...$attributes)
     {
-        $this->attributes = $renderers;
+        $this->axises = $axises;
+        $this->attributes = $attributes;
+    }
+
+    public function attributes(): \Traversable
+    {
+        return new \ArrayIterator($this->attributes);
+    }
+
+    public function axises(): \Traversable
+    {
+        return $this->axises->getIterator();
     }
 }

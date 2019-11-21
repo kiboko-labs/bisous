@@ -4,7 +4,7 @@ namespace App\Domain\Magento\CodeGenerator;
 
 use App\Domain\Magento\Attribute;
 use App\Domain\Magento\CodeGenerator as CodeGeneratorInterface;
-use App\Domain\Magento\Locale;
+use App\Domain\Magento\LocaleStore;
 use App\Domain\Magento\Scope;
 
 class ScopedAndLocalized implements CodeGeneratorInterface
@@ -13,13 +13,13 @@ class ScopedAndLocalized implements CodeGeneratorInterface
     private $attribute;
     /** @var Scope */
     private $scope;
-    /** @var Locale */
+    /** @var LocaleStore */
     private $locale;
 
     public function __construct(
         Attribute $attribute,
         Scope $scope,
-        Locale $locale
+        LocaleStore $locale
     ) {
         $this->attribute = $attribute;
         $this->scope = $scope;

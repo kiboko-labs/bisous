@@ -56,8 +56,8 @@ Go to [the latest version download page](https://github.com/kiboko-labs/bisous/r
 Alternatively you can install the files this way:
 
 ```bash
-curl https://github.com/kiboko-labs/bisous/releases/download/v1.0.0/bisous.phar --output /usr/local/bin/bisous
-curl https://github.com/kiboko-labs/bisous/releases/download/v1.0.0/bisous.phar.pubkey --output /usr/local/bin/bisous.pubkey
+curl -L https://github.com/kiboko-labs/bisous/releases/download/v1.0.0/bisous.phar --output /usr/local/bin/bisous
+curl -L https://github.com/kiboko-labs/bisous/releases/download/v1.0.0/bisous.phar.pubkey --output /usr/local/bin/bisous.pubkey
 chmod 0755 /usr/local/bin/bisous
 ```
 

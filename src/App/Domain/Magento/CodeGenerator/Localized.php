@@ -4,18 +4,18 @@ namespace App\Domain\Magento\CodeGenerator;
 
 use App\Domain\Magento\Attribute;
 use App\Domain\Magento\CodeGenerator as CodeGeneratorInterface;
-use App\Domain\Magento\Locale;
+use App\Domain\Magento\LocaleStore;
 
 class Localized implements CodeGeneratorInterface
 {
     /** @var Attribute */
     private $attribute;
-    /** @var Locale */
+    /** @var LocaleStore */
     private $locale;
 
     public function __construct(
         Attribute $attribute,
-        Locale $locale
+        LocaleStore $locale
     ) {
         $this->attribute = $attribute;
         $this->locale = $locale;

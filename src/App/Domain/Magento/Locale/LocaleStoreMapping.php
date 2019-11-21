@@ -5,7 +5,7 @@ namespace App\Domain\Magento\Locale;
 use App\Domain\Magento\Locale as LocaleInterface;
 use App\Domain\Magento\MagentoStore;
 
-class LocaleMapping implements LocaleInterface
+class LocaleStoreMapping implements LocaleInterface
 {
     /** @var Locale */
     private $locale;

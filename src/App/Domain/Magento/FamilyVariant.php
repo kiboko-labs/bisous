@@ -25,6 +25,11 @@ class FamilyVariant
         $this->axises = $axises;
     }
 
+    public function __toString()
+    {
+        return $this->code;
+    }
+
     public function axis(int $level): FamilyVariantAxis
     {
         if ($level > count($this->axises)) {

@@ -1,0 +1,30 @@
+SELECT
+    family.id AS id,
+    family.code AS code
+FROM (
+{%- set renderedFamilies = [] -%}
+
+{%- for family in families -%}
+    {% set renderedFamily %}
+    SELECT '{{ family.code }}' AS code
+    {%  endset %}
+
+    {%- set renderedFamilies = renderedFamilies|merge([renderedFamily]) -%}
+{%- endfor -%}
+    {{ renderedFamilies|join(' UNION ') }}
+) AS codes
+INNER JOIN (
+    SELECT
+        {% set codeMapping -%}
+        LOWER(family.attribute_set_name)
+        {%- endset -%}
+        {%- for replace in mapping -%}
+            {%- set codeMapping -%}REPLACE({{ codeMapping }}, '{{ replace.from }}', '{{ replace.to }}'){%- endset -%}
+        {%- endfor %}
+        SUBSTRING({{ codeMapping }}, 1, 100) AS code,
+        family.attribute_set_id AS id
+    FROM eav_attribute_set AS family
+    INNER JOIN eav_entity_type AS entity
+        ON entity.entity_type_id = family.entity_type_id
+    WHERE entity.entity_type_code='catalog_product'
+) AS family ON family.code=codes.code

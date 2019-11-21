@@ -4,7 +4,7 @@ namespace App\Infrastructure;
 
 use App\Domain\Magento\FamilyVariant;
 
-class FamilyVariantAxisAttributeAggregator
+class FamilyVariantAxisAggregator
 {
     public function __invoke(FamilyVariant ...$variants): array
     {
@@ -18,10 +18,8 @@ class FamilyVariantAxisAttributeAggregator
     {
         foreach ($variants as $variant) {
             yield from $variant->axis(1)->axises();
-            yield from $variant->axis(1)->attributes();
             if ($variant->isTwoLevels()) {
                 yield from $variant->axis(2)->axises();
-                yield from $variant->axis(2)->attributes();
             }
         }
     }

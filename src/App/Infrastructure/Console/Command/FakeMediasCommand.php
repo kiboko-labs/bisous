@@ -188,7 +188,7 @@ class FakeMediasCommand extends Command
                     mkdir($directory, 0755, true);
                 }
 
-                $this->logger->debug(strtr('Writing file %file%.', [
+                $this->logger->info(strtr('Writing file %file%.', [
                     '%file%' => $basePath . '/' . $line[$columnId],
                 ]));
 

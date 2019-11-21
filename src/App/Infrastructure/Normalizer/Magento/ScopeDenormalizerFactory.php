@@ -12,7 +12,7 @@ class ScopeDenormalizerFactory
         return new ListDenormalizer(
             new ScopeDenormalizer(
                 new ListDenormalizer(
-                    new LocaleDenormalizer()
+                    new LocaleStoreDenormalizer()
                 )
             )
         );

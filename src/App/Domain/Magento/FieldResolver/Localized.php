@@ -7,15 +7,14 @@ use App\Domain\Magento\AttributeRenderer;
 use App\Domain\Magento\CodeGenerator;
 use App\Domain\Magento\Field;
 use App\Domain\Magento\FieldResolver;
-use App\Domain\Magento\Locale;
-use App\Domain\Magento\MagentoStore;
+use App\Domain\Magento\LocaleStore;
 
 class Localized implements FieldResolver
 {
-    /** @var Locale[] */
+    /** @var LocaleStore[] */
     private $locales;
 
-    public function __construct(Locale ...$locales)
+    public function __construct(LocaleStore ...$locales)
     {
         $this->locales = $locales;
     }
